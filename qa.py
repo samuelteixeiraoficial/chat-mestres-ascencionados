@@ -6,17 +6,26 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import CSVLoader
 import requests
 import os
+import pandas as pd
+from io import StringIO
 
 # Carrega as variáveis de ambiente
 load_dotenv()
 
-# Carrega o CSV com codificação utf-8
+# Link público do Google Sheets (exportado como CSV)
+google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU2IKlqeuYSB06YyXBJs1w8LiAA-g21ncSBXszbZJZl3nG8JCRmitTsiWXse6V7XXjTa8YMbSp0d-3/pub?output=csv"
+
+# Carrega o CSV diretamente do link
 try:
-    loader = CSVLoader(
-        file_path="C:/Users/Samue/OneDrive/Backups Importantes/Samuel Teixeira/Espiritualidade/Incorporações Laércio/Python/Respostas_Mestres_Ascensionados_e_Extraterrestres.csv",
-        encoding="utf-8"  # Especifica a codificação
-    )
-    documents = loader.load()
+    # Faz o download do CSV
+    response = requests.get(google_sheets_csv_url)
+    response.raise_for_status()  # Verifica se a requisição foi bem-sucedida
+
+    # Usa o pandas para ler o CSV
+    df = pd.read_csv(StringIO(response.text))
+
+    # Converte o DataFrame para uma lista de documentos (formato esperado pelo LangChain)
+    documents = [{"page_content": row.to_string()} for _, row in df.iterrows()]
 except Exception as e:
     st.error(f"Erro ao carregar o CSV: {e}")
 
@@ -28,8 +37,6 @@ embeddings = HuggingFaceEmbeddings(
 db = FAISS.from_documents(documents, embeddings)
 
 # Função para buscar documentos semelhantes
-
-
 def retrieve_info(query):
     # Busca os 7 documentos mais semelhantes
     similar_response = db.similarity_search(query, k=7)
@@ -131,5 +138,3 @@ if user_input:
             st.write(resposta["choices"][0]["message"]["content"])
         else:
             st.write("Não foi possível obter uma resposta.")
-
-# Como abrir no navegador = streamlit run qa.py
