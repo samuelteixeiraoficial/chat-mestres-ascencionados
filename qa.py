@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 import requests
 import pandas as pd
 from io import StringIO
-from langchain.docstore.document import Document  # Importe a classe Document
+from langchain.docstore.document import Document
 import os
+from langdetect import detect  # Importe a função detect para identificar o idioma
 
 # Carrega as variáveis de ambiente
 load_dotenv()
@@ -42,7 +43,6 @@ def retrieve_info(query):
     similar_response = db.similarity_search(query, k=7)
     return [doc.page_content for doc in similar_response]
 
-
 # Configuração da API da DeepSeek
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
@@ -72,19 +72,20 @@ Siga todas as regras abaixo:
 Pergunta:
 {pergunta}
 
+Idioma da Resposta:
+{idioma}
+
 Escreva a melhor resposta que eu deveria enviar para o user.
 """
 
 # Cria o PromptTemplate
 prompt_template = PromptTemplate(
-    input_variables=["contexto", "pergunta"],
+    input_variables=["contexto", "pergunta", "idioma"],
     template=template
 )
 
 # Função para chamar a API da DeepSeek
-
-
-def call_deepseek_api(prompt):
+def call_deepseek_api(prompt, idioma):
     try:
         headers = {
             "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
@@ -99,7 +100,8 @@ def call_deepseek_api(prompt):
                 }
             ],
             "max_tokens": 500,
-            "temperature": 0.5
+            "temperature": 0.5,
+            "language": idioma  # Define o idioma da resposta
         }
         response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
         response.raise_for_status()  # Levanta uma exceção para erros HTTP
@@ -107,7 +109,6 @@ def call_deepseek_api(prompt):
     except requests.exceptions.RequestException as e:
         st.error(f"Erro ao chamar a API da DeepSeek: {e}")
         return None
-
 
 # Interface do Streamlit
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
@@ -119,6 +120,12 @@ if user_input:
     if not user_input.strip():
         st.error("Por favor, insira uma pergunta.")
     else:
+        # Detecta o idioma da pergunta
+        try:
+            idioma = detect(user_input)
+        except:
+            idioma = "pt"  # Define um idioma padrão (português) caso a detecção falhe
+
         # Busca documentos semelhantes
         contextos = retrieve_info(user_input)
         # Combina os contextos em um único texto
@@ -127,11 +134,12 @@ if user_input:
         # Cria o prompt com o template
         prompt_final = prompt_template.format(
             contexto=contexto_completo,
-            pergunta=user_input
+            pergunta=user_input,
+            idioma=idioma
         )
 
         # Chama a API da DeepSeek
-        resposta = call_deepseek_api(prompt_final)
+        resposta = call_deepseek_api(prompt_final, idioma)
         if resposta:
             # Exibe apenas a resposta
             st.write("**Resposta:**")
