@@ -5,3 +5,5 @@ faiss-cpu
 sentence-transformers
 python-dotenv
 requests
+
+langdetect==1.0.9
