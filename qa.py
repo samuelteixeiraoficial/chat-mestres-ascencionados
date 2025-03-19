@@ -3,17 +3,17 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
-from langchain_community.document_loaders import CSVLoader
 import requests
-import os
 import pandas as pd
 from io import StringIO
+from langchain.docstore.document import Document  # Importe a classe Document
+import os
 
 # Carrega as variáveis de ambiente
 load_dotenv()
 
 # Link público do Google Sheets (exportado como CSV)
-google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU2IKlqeuYSB06YyXBJs1w8LiAA-g21ncSBXszbZJZl3nG8JCRmitTsiWXse6V7XXjTa8YMbSp0d-3/pub?output=csv"
+google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
 
 # Carrega o CSV diretamente do link
 try:
@@ -24,8 +24,8 @@ try:
     # Usa o pandas para ler o CSV
     df = pd.read_csv(StringIO(response.text))
 
-    # Converte o DataFrame para uma lista de documentos (formato esperado pelo LangChain)
-    documents = [{"page_content": row.to_string()} for _, row in df.iterrows()]
+    # Converte o DataFrame para uma lista de objetos Document (formato esperado pelo LangChain)
+    documents = [Document(page_content=row.to_string()) for _, row in df.iterrows()]
 except Exception as e:
     st.error(f"Erro ao carregar o CSV: {e}")
 
