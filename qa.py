@@ -8,7 +8,7 @@ import pandas as pd
 from io import StringIO
 from langchain.docstore.document import Document
 import os
-from langdetect import detect  # Importe a função detect para identificar o idioma
+import langid  # Para detecção de idioma
 
 # Carrega as variáveis de ambiente
 load_dotenv()
@@ -26,7 +26,8 @@ try:
     df = pd.read_csv(StringIO(response.text))
 
     # Converte o DataFrame para uma lista de objetos Document (formato esperado pelo LangChain)
-    documents = [Document(page_content=row.to_string()) for _, row in df.iterrows()]
+    documents = [Document(page_content=row.to_string())
+                 for _, row in df.iterrows()]
 except Exception as e:
     st.error(f"Erro ao carregar o CSV: {e}")
 
@@ -38,10 +39,13 @@ embeddings = HuggingFaceEmbeddings(
 db = FAISS.from_documents(documents, embeddings)
 
 # Função para buscar documentos semelhantes
+
+
 def retrieve_info(query):
     # Busca os 7 documentos mais semelhantes
     similar_response = db.similarity_search(query, k=7)
     return [doc.page_content for doc in similar_response]
+
 
 # Configuração da API da DeepSeek
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
@@ -52,8 +56,6 @@ template = """
 Você é um assistente virtual de uma egrégora de seres Ascencionados espiritualmente.
 Sua função será responder perguntas de pessoas que estão vivendo no planeta terra e precisam de orientação de como viver a vida de uma forma mais sábia.
 Você tem acesso ao seguinte contexto com base em mensagens e respostas dadas pelos mestres e extraterrestres:
-Algumas partes do contexto pode conter uma interação ou conversa com perguntas e respostas entre o mestre/extraterrestre e o discípulo.
-Algumas partes do contexto pode conter comentários de descrição do que aconteceu no momento real da conversa dos mestres incorporados no médium espiritual.
 
 Contexto:
 {contexto}
@@ -80,13 +82,40 @@ Idioma da Resposta:
 Escreva a melhor resposta que eu deveria enviar para o user.
 """
 
-# Cria o PromptTemplate
+# Template alternativo para quando não há contexto relevante
+template_sem_contexto = """
+Você é um assistente virtual de uma egrégora de seres Ascencionados espiritualmente.
+Sua função será responder perguntas de pessoas que estão vivendo no planeta terra e precisam de orientação de como viver a vida de uma forma mais sábia.
+
+A pergunta do usuário não tem relação direta com o contexto das mensagens e respostas dos mestres ascencionados e extraterrestres. Portanto, siga as regras abaixo:
+
+1/ Informe ao usuário que a resposta não tem base no conteúdo real do banco de dados das respostas dos mestres ascencionados e extraterrestres.
+
+2/ Dê uma resposta simples e curta, mas que ainda seja útil e relevante para a pergunta do usuário.
+
+Pergunta:
+{pergunta}
+
+Idioma da Resposta:
+{idioma}
+
+Escreva a melhor resposta que eu deveria enviar para o user.
+"""
+
+# Cria os PromptTemplates
 prompt_template = PromptTemplate(
     input_variables=["contexto", "pergunta", "idioma"],
     template=template
 )
 
+prompt_template_sem_contexto = PromptTemplate(
+    input_variables=["pergunta", "idioma"],
+    template=template_sem_contexto
+)
+
 # Função para chamar a API da DeepSeek
+
+
 def call_deepseek_api(prompt, idioma):
     try:
         headers = {
@@ -112,6 +141,7 @@ def call_deepseek_api(prompt, idioma):
         st.error(f"Erro ao chamar a API da DeepSeek: {e}")
         return None
 
+
 # Interface do Streamlit
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 
@@ -124,21 +154,31 @@ if user_input:
     else:
         # Detecta o idioma da pergunta
         try:
-            idioma = detect(user_input)
+            idioma, _ = langid.classify(user_input)
         except:
-            idioma = "pt"  # Define um idioma padrão (português) caso a detecção falhe
+            # Define um idioma padrão (português) caso a detecção falhe
+            idioma = "pt"
 
         # Busca documentos semelhantes
         contextos = retrieve_info(user_input)
-        # Combina os contextos em um único texto
-        contexto_completo = "\n".join(contextos)
 
-        # Cria o prompt com o template
-        prompt_final = prompt_template.format(
-            contexto=contexto_completo,
-            pergunta=user_input,
-            idioma=idioma
-        )
+        # Verifica se há contexto relevante
+        if not contextos or all(not contexto.strip() for contexto in contextos):
+            # Se não houver contexto relevante, usa o template alternativo
+            prompt_final = prompt_template_sem_contexto.format(
+                pergunta=user_input,
+                idioma=idioma
+            )
+        else:
+            # Combina os contextos em um único texto
+            contexto_completo = "\n".join(contextos)
+
+            # Cria o prompt com o template principal
+            prompt_final = prompt_template.format(
+                contexto=contexto_completo,
+                pergunta=user_input,
+                idioma=idioma
+            )
 
         # Chama a API da DeepSeek
         resposta = call_deepseek_api(prompt_final, idioma)
