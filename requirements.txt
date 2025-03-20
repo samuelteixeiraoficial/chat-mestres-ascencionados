@@ -7,3 +7,4 @@ python-dotenv
 requests
 
 langdetect==1.0.9
+langid==1.1.6
