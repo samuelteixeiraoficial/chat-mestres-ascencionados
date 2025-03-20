@@ -73,6 +73,10 @@ Siga todas as regras abaixo:
 
 6/ Algumas respostas podem ser curtas, outras podem ser longas exatamente como nos modelos do contexto, pois o mais importante é falar o necessário e apenas o necessário.
 
+7/ No contexto pode possuir interação de respostas dos discípulos em relação a interrogações que podem ser feitas pelos mestres durante suas próprias respostas, para que o aprendizado seja mais profundo eles mantêm essa interação na conversa entre mestre e discípulo.
+
+8/ Considere que o contexto é um banco de dados de conversas que aconteceram em vários dias, onde cada dia pode ter tido 2, 3, 5, 10, etc. perguntas e respostas, inclusive onde uma resposta do mestre poderia levar para a próxima questão a seguir no mesmo dia.
+
 Pergunta:
 {pergunta}
 
