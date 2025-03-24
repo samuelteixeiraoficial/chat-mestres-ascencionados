@@ -1,6 +1,6 @@
 import streamlit as st
 from dotenv import load_dotenv
-from utils import carregar_dados, carregar_template, processar_pergunta
+from functions import carregar_dados, carregar_template, processar_pergunta
 import os
 
 # Carrega as variáveis de ambiente
