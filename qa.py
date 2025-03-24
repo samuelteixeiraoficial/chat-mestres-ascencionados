@@ -1,106 +1,19 @@
 import streamlit as st
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
-import requests
-import pandas as pd
-from io import StringIO
-from langchain.docstore.document import Document
+from utils import carregar_dados, carregar_template, processar_pergunta
 import os
-import time
 
 # Carrega as variáveis de ambiente
 load_dotenv()
 
-# Carregar o arquivo CSS externo
-with open("styles.css", "r") as file:
-    st.markdown(f"<style>{file.read()}</style>", unsafe_allow_html=True)
-
 # Link do Google Sheets
 google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
 
-@st.cache_resource
-def carregar_dados():
-    try:
-        response = requests.get(google_sheets_csv_url)
-        response.raise_for_status()
-        df = pd.read_csv(StringIO(response.text))
+# Carregar dados
+db_perguntas, db_respostas = carregar_dados(google_sheets_csv_url)
 
-        perguntas_docs = []
-        respostas_docs = []
-        for _, row in df.iterrows():
-            if pd.notna(row["Pergunta"]) and pd.notna(row["Resposta"]):
-                perguntas_docs.append(Document(
-                    page_content=row["Pergunta"],
-                    metadata={"resposta": row["Resposta"]}
-                ))
-                respostas_docs.append(Document(
-                    page_content=row["Resposta"]
-                ))
-        
-        embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
-        )
-        db_perguntas = FAISS.from_documents(perguntas_docs, embeddings)
-        db_respostas = FAISS.from_documents(respostas_docs, embeddings)
-        
-        return db_perguntas, db_respostas
-        
-    except Exception as e:
-        st.error(f"Erro ao carregar o CSV: {e}")
-        st.stop()
-
-db_perguntas, db_respostas = carregar_dados()
-
-def carregar_template():
-    try:
-        with open("prompt_template.txt", "r", encoding="utf-8") as file:
-            return file.read()
-    except Exception as e:
-        st.error(f"Erro ao carregar o template: {e}")
-        st.stop()
-
-template = carregar_template()
-
-def processar_pergunta(pergunta):
-    try:
-        similar_perguntas = db_perguntas.similarity_search_with_score(pergunta, k=4)
-        usar_respostas = all(score < 0.2 for _, score in similar_perguntas)
-        
-        if usar_respostas:
-            contextos = [doc.page_content for doc in db_respostas.similarity_search(pergunta, k=7)]
-        else:
-            contextos = [doc.metadata["resposta"] for doc, _ in similar_perguntas]
-        
-        prompt = PromptTemplate(
-            template=template,
-            input_variables=["contexto", "pergunta"]
-        ).format(
-            contexto="\n".join(contextos),
-            pergunta=pergunta
-        )
-        
-        headers = {"Authorization": f"Bearer {os.getenv('DEEPSEEK_API_KEY')}"}
-        data = {
-            "model": "deepseek-chat",
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 500,
-            "temperature": 0.5,
-            "language": "pt-BR"
-        }
-        
-        resposta = requests.post(
-            "https://api.deepseek.com/chat/completions",
-            headers=headers,
-            json=data
-        ).json()
-        
-        return resposta["choices"][0]["message"]["content"]
-    
-    except Exception as e:
-        st.error(f"Erro no processamento: {str(e)}")
-        return None
+# Carregar template
+template = carregar_template("prompt_template.txt")
 
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
@@ -134,7 +47,7 @@ with st.form(key='pergunta_form'):
 
     if enviar and pergunta.strip():
         with st.spinner("Processando sua pergunta..."):
-            resposta = processar_pergunta(pergunta)
+            resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
             if resposta:
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
                 st.rerun()  # Atualiza a interface imediatamente
