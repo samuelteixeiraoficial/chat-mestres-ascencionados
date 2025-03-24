@@ -48,10 +48,11 @@ with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
     
     with col1:
+        # Usando st.session_state para controlar o valor do campo de input
         pergunta = st.text_input(
             "Sua pergunta:",
             placeholder="Escreva sua dúvida aqui...",
-            key="input_pergunta"
+            key="input_pergunta"  # Associando o campo de entrada com a session_state
         )
     
     with col2:
@@ -65,8 +66,8 @@ with st.form(key='pergunta_form'):
             if resposta:
                 # Adiciona a pergunta e resposta ao histórico
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                # Limpa o campo de entrada
-                st.session_state.input_pergunta = ""  # Resetando o campo
+                # Resetando o campo de entrada no session_state
+                st.session_state.input_pergunta = ""  # Limpar o valor do campo de entrada
                 st.rerun()  # Rerun mais eficiente
 
 # Adiciona o aviso abaixo do campo de pergunta
