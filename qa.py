@@ -67,7 +67,7 @@ with st.form(key='pergunta_form'):
                 # Adiciona a pergunta e resposta ao histórico
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
                 # Resetando o campo de entrada no session_state, mas utilizando o 'key' do text_input
-                st.experimental_rerun()  # O rerun vai fazer a atualização da interface e limpar o campo
+                st.rerun()  # Rerun mais eficiente
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
