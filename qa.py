@@ -13,55 +13,9 @@ import time
 # Carrega as variáveis de ambiente
 load_dotenv()
 
-# Configuração CSS global
-st.markdown(
-    """
-    <style>
-        body {
-            background-color: #0F0021;
-        }
-        .main {
-            background-color: #0F0021;
-        }
-        .stTextInput>div>div>input {
-            color: white !important;
-            font-size: 16px !important;
-        }
-        .stTextInput>label {
-            color: #EEFFFC !important;
-        }
-        .stButton>button {
-            background-color: #cce7ee !important;
-            color: black !important;
-            border: none !important;
-            font-size: 16px !important;
-            padding: 8px 16px !important;
-            border-radius: 8px !important;
-            width: 100%;
-        }
-        .stButton>button:hover {
-            background-color: #aacbde !important;
-        }
-        .mensagem-box {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 16px;
-            margin: 10px 0;
-        }
-        .pergunta-box {
-            color: #cce7ee;
-            font-weight: bold;
-            text-align: right;
-        }
-        .resposta-box {
-            color: #EEFFFC;
-            text-align: left;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# Carregar o arquivo CSS externo
+with open("styles.css", "r") as file:
+    st.markdown(f"<style>{file.read()}</style>", unsafe_allow_html=True)
 
 # Link do Google Sheets
 google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
