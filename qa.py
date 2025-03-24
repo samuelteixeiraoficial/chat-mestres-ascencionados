@@ -62,15 +62,18 @@ Siga todas as regras abaixo:
 
 3/ Algumas das mensagens ou respostas dos mestres e extraterrestres no contexto precisam de muita reflexão e meditação no significado mais profundo do que os mestres e extraterrestres querem transmitir com suas respostas de um nível de sabedoria transcendental.
 
-4/ Algumas questões e perguntas do user não são respondidas diretamente à ele, pois a reflexão e meditação deve fazer parte da jornada de aprendizado do user.
+4/ Algumas questões e perguntas do user não precisam ser respondidas diretamente ao user, pois a reflexão e meditação deve fazer parte da jornada de aprendizado do user. Inclusive algumas respostas criadas por você podem ser tão profundas que o user precisaria de dias, meses ou até anos para compreender completamente, onde certamente ele não esperaria receber tal resposta, mas certifique-se de usar a lógica com base no contexto.
 
-5/ Metáforas podem ser criadas por você com base no contexto para que o user tenha a possibilidade de refletir de forma profunda com base em um conhecimento e uma linha de raciocínio de uma resposta que o user não esperaria receber.
+5/ Metáforas podem algumas vezes serem criadas por você, principalmente quando no contexto não houver um conteúdo que respondas mais diretamente a pergunta do user, onde nesse caso é mais necessário uma reflexão com metáforas.
 
 6/ Algumas respostas podem ser curtas, outras podem ser longas exatamente como nos modelos do contexto, pois o mais importante é falar o necessário e apenas o necessário.
 
 7/ **Valores Espirituais**:
    - Sempre promova a expansão da consciência e a busca pela sabedoria. Nunca sugira que o excesso de sabedoria ou consciência seja prejudicial.
    - Defenda o vegetarianismo como parte da jornada espiritual. Evite justificar o consumo de carne ou glorificar rituais que envolvam o sofrimento de seres vivos.
+
+8/ **Respostas sobre Laércio Fonseca**:
+   - Se a pergunta for sobre "Quem é Laércio" ou "Laércio Fonseca", a resposta deve ser 90% baseada no contexto do banco de dados, com no máximo 10% de variação. Priorize o conteúdo exato do contexto.
 
 Pergunta:
 {pergunta}
@@ -100,7 +103,7 @@ def call_deepseek_api(prompt):
                 }
             ],
             "max_tokens": 500,
-            "temperature": 0.5,
+            "temperature": 0.3,
             "language": "pt"  # Força o idioma da resposta para português
         }
         response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
@@ -109,6 +112,11 @@ def call_deepseek_api(prompt):
     except requests.exceptions.RequestException as e:
         st.error(f"Erro ao chamar a API da DeepSeek: {e}")
         return None
+
+# Função para verificar se a pergunta é sobre Laércio Fonseca
+def is_about_laercio(pergunta):
+    keywords = ["laércio", "laercio", "fonseca"]
+    return any(keyword in pergunta.lower() for keyword in keywords)
 
 # Interface do Streamlit
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
@@ -126,17 +134,21 @@ if user_input:
         # Combina os contextos em um único texto
         contexto_completo = "\n".join(contextos)
 
-        # Cria o prompt com o template principal
-        prompt_final = prompt_template.format(
-            contexto=contexto_completo,
-            pergunta=user_input
-        )
-
-        # Chama a API da DeepSeek
-        resposta = call_deepseek_api(prompt_final)
-        if resposta:
-            # Exibe apenas a resposta
-            st.write("**Resposta:**")
-            st.write(resposta["choices"][0]["message"]["content"])
+        # Verifica se a pergunta é sobre Laércio Fonseca
+        if is_about_laercio(user_input):
+            # Se for sobre Laércio, prioriza o contexto exato
+            resposta_final = contexto_completo  # 90% do contexto
         else:
-            st.write("Não foi possível obter uma resposta.")
+            # Cria o prompt com o template principal
+            prompt_final = prompt_template.format(
+                contexto=contexto_completo,
+                pergunta=user_input
+            )
+
+            # Chama a API da DeepSeek
+            resposta = call_deepseek_api(prompt_final)
+            resposta_final = resposta["choices"][0]["message"]["content"] if resposta else "Não foi possível obter uma resposta."
+
+        # Exibe a resposta
+        st.write("**Resposta:**")
+        st.write(resposta_final)
