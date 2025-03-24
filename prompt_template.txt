@@ -34,5 +34,5 @@ Siga todas as regras abaixo:
 Pergunta:
 {pergunta}
 
-Escreva a melhor resposta que eu deveria enviar para o user. A resposta deve ser sempre em português.
+Escreva a melhor resposta que eu deveria enviar para o user. A resposta deve ser sempre em português do Brasil.
 """
