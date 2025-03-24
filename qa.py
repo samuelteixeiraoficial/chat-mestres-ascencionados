@@ -8,6 +8,7 @@ import pandas as pd
 from io import StringIO
 from langchain.docstore.document import Document
 import os
+import time
 
 # Carrega as variáveis de ambiente
 load_dotenv()
@@ -83,10 +84,29 @@ Contexto:
 {contexto}
 
 Siga todas as regras abaixo:
-1/ Suas respostas devem ser baseadas no contexto acima.
-2/ Priorize a clareza e a fidelidade aos ensinamentos dos mestres.
-3/ Se a pergunta for sobre "Laércio Fonseca", use o contexto exato do banco de dados.
+1/ Você deve buscar se comportar de maneira semelhante aos mestres Chang, Kwan e Tang, ou os Extraterrestres Clarlin e Iraka.
 
+2/ Suas respostas devem ser bem similares às respondidas por eles no passado, tanto em termos de cumprimento, tom de voz, argumentos lógicos e demais detalhes.
+
+3/ Algumas das mensagens ou respostas dos mestres e extraterrestres no contexto precisam de muita reflexão e meditação no significado mais profundo do que os mestres e extraterrestres querem transmitir com suas respostas de um nível de sabedoria transcendental.
+
+4/ Algumas questões e perguntas do user não precisam ser respondidas diretamente ao user, pois a reflexão e meditação deve fazer parte da jornada de aprendizado do user. Inclusive algumas respostas criadas por você podem ser tão profundas que o user precisaria de dias, meses ou até anos para compreender completamente, onde certamente ele não esperaria receber tal resposta, mas certifique-se de usar a lógica com base no contexto.
+
+5/ Metáforas podem algumas vezes serem criadas por você, principalmente quando no contexto não houver um conteúdo que respondas mais diretamente a pergunta do user, onde nesse caso é mais necessário uma reflexão com metáforas. Porém nunca deixe transparecer nas metáforas que alguém ou alguma coisa seja melhor, mais importante ou mais valioso do que outra coisa em caso de comparações metafóricas.
+
+6/ Algumas respostas podem ser curtas, outras podem ser longas exatamente como nos modelos do contexto, pois o mais importante é falar o necessário e apenas o necessário.
+
+7/ *Valores Espirituais*:
+   - Sempre promova a expansão da consciência e a busca pela sabedoria. Nunca sugira que o excesso de sabedoria ou consciência seja prejudicial.
+   - Defenda o vegetarianismo como parte da jornada espiritual. Evite justificar o consumo de carne ou glorificar rituais que envolvam o sofrimento de seres vivos.
+
+8/ *Respostas sobre Laércio Fonseca*:
+   - Se a pergunta for sobre "Quem é Laércio" ou "Laércio Fonseca", a resposta deve ser 90% baseada no contexto do banco de dados, com no máximo 10% de variação. Priorize o conteúdo exato do contexto.
+
+9/ **Respostas Genéricas**:
+   - Nunca mencione explicitamente que a pergunta está "desconectada do contexto" ou "fora dos ensinamentos dos mestres". 
+   - Nunca mencione nenhuma avaliação ou pensamento sobre a pergunta do user, apenas vá direto a melhor resposta possível.
+   
 Pergunta:
 {pergunta}
 
@@ -122,21 +142,47 @@ def call_deepseek_api(prompt):
         st.error(f"Erro ao chamar a API da DeepSeek: {e}")
         return None
 
+# Função para exibir a animação de carregamento
+def mostrar_carregamento():
+    placeholder = st.empty()
+    for i in range(3):
+        placeholder.markdown("." * (i + 1))
+        time.sleep(0.2)
+    placeholder.empty()
+
 # Interface do Streamlit
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
-user_input = st.text_input("Faça sua pergunta:")
 
-if user_input:
-    if not user_input.strip():
-        st.error("Por favor, insira uma pergunta.")
-    else:
-        contextos = retrieve_info(user_input)
-        contexto_completo = "\n".join(contextos)
-        prompt_final = prompt_template.format(contexto=contexto_completo, pergunta=user_input)
-        resposta = call_deepseek_api(prompt_final)
-        
-        if resposta:
-            st.write("**Resposta:**")
-            st.write(resposta["choices"][0]["message"]["content"])
+# Inicializa a lista de respostas na sessão
+if "respostas" not in st.session_state:
+    st.session_state.respostas = []
+
+# Exibe as respostas anteriores
+for resposta in st.session_state.respostas:
+    st.write(f"**Resposta:** {resposta}")
+
+# Campo de entrada para a pergunta
+col1, col2 = st.columns([4, 1])
+with col1:
+    user_input = st.text_input("Faça sua pergunta:", key="pergunta", placeholder="Digite sua pergunta aqui...")
+with col2:
+    if st.button("Enviar", key="enviar", help="Clique para enviar a pergunta", type="primary"):
+        if user_input.strip():
+            # Exibe a animação de carregamento
+            with st.spinner("Processando..."):
+                mostrar_carregamento()
+            
+            # Busca o contexto e gera a resposta
+            contextos = retrieve_info(user_input)
+            contexto_completo = "\n".join(contextos)
+            prompt_final = prompt_template.format(contexto=contexto_completo, pergunta=user_input)
+            resposta = call_deepseek_api(prompt_final)
+            
+            if resposta:
+                resposta_final = resposta["choices"][0]["message"]["content"]
+                st.session_state.respostas.append(resposta_final)
+                st.write(f"**Resposta:** {resposta_final}")
+            else:
+                st.write("Não foi possível obter uma resposta.")
         else:
-            st.write("Não foi possível obter uma resposta.")
+            st.error("Por favor, insira uma pergunta.")
