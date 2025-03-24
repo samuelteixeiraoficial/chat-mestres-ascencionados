@@ -153,6 +153,13 @@ if enviar and pergunta.strip():
     st.session_state.pergunta_atual = pergunta
     st.session_state.processando = True
 
+    # Aguarda o processamento da pergunta
+    resposta = processar_pergunta(pergunta)
+    if resposta:
+        st.session_state.respostas.insert(0, {"pergunta": pergunta, "resposta": resposta})
+
     # Reseta o campo de entrada
-    st.session_state.input_pergunta = ""  # Limpa o texto da pergunta anterior
-    st.rerun()  # Atualiza a interface imediatamente
+    st.session_state.pergunta_atual = ""  # Define como string vazia
+
+    # Força a atualização da interface
+    st.experimental_rerun()
