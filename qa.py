@@ -28,10 +28,12 @@ try:
     perguntas_docs = []
     respostas_docs = []
     for _, row in df.iterrows():
-        perguntas_docs.append(
-            Document(page_content=row["Pergunta"], metadata={"resposta": row["Resposta"]})
-        )
-        respostas_docs.append(Document(page_content=row["Resposta"]))
+        # Verifica se a pergunta e a resposta não são NaN
+        if pd.notna(row["Pergunta"]) and pd.notna(row["Resposta"]):
+            perguntas_docs.append(
+                Document(page_content=row["Pergunta"], metadata={"resposta": row["Resposta"]})
+            )
+            respostas_docs.append(Document(page_content=row["Resposta"]))
 
 except Exception as e:
     st.error(f"Erro ao carregar o CSV: {e}")
@@ -81,29 +83,14 @@ Contexto:
 {contexto}
 
 Siga todas as regras abaixo:
-1/ Você deve buscar se comportar de maneira semelhante aos mestres Chang, Kwan e Tang, ou os Extraterrestres Clarlin e Iraka.
-
-2/ Suas respostas devem ser bem similares às respondidas por eles no passado, tanto em termos de cumprimento, tom de voz, argumentos lógicos e demais detalhes.
-
-3/ Algumas das mensagens ou respostas dos mestres e extraterrestres no contexto precisam de muita reflexão e meditação no significado mais profundo do que os mestres e extraterrestres querem transmitir com suas respostas de um nível de sabedoria transcendental.
-
-4/ Algumas questões e perguntas do user não precisam ser respondidas diretamente ao user, pois a reflexão e meditação deve fazer parte da jornada de aprendizado do user. Inclusive algumas respostas criadas por você podem ser tão profundas que o user precisaria de dias, meses ou até anos para compreender completamente, onde certamente ele não esperaria receber tal resposta, mas certifique-se de usar a lógica com base no contexto.
-
-5/ Metáforas podem algumas vezes serem criadas por você, principalmente quando no contexto não houver um conteúdo que respondas mais diretamente a pergunta do user, onde nesse caso é mais necessário uma reflexão com metáforas. Porém nunca deixe transparecer nas metáforas que alguém ou alguma coisa seja melhor, mais importante ou mais valioso do que outra coisa em caso de comparações metafóricas.
-
-6/ Algumas respostas podem ser curtas, outras podem ser longas exatamente como nos modelos do contexto, pois o mais importante é falar o necessário e apenas o necessário.
-
-7/ *Valores Espirituais*:
-   - Sempre promova a expansão da consciência e a busca pela sabedoria. Nunca sugira que o excesso de sabedoria ou consciência seja prejudicial.
-   - Defenda o vegetarianismo como parte da jornada espiritual. Evite justificar o consumo de carne ou glorificar rituais que envolvam o sofrimento de seres vivos.
-
-8/ *Respostas sobre Laércio Fonseca*:
-   - Se a pergunta for sobre "Quem é Laércio" ou "Laércio Fonseca", a resposta deve ser 90% baseada no contexto do banco de dados, com no máximo 10% de variação. Priorize o conteúdo exato do contexto.
+1/ Suas respostas devem ser baseadas no contexto acima.
+2/ Priorize a clareza e a fidelidade aos ensinamentos dos mestres.
+3/ Se a pergunta for sobre "Laércio Fonseca", use o contexto exato do banco de dados.
 
 Pergunta:
 {pergunta}
 
-Escreva a melhor resposta que eu deveria enviar para o user. A resposta deve ser sempre em português e alinhada com os valores espirituais mencionados acima.
+Escreva a melhor resposta que eu deveria enviar para o user. A resposta deve ser sempre em português.
 """
 
 # Cria o PromptTemplate
