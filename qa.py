@@ -13,55 +13,9 @@ import time
 # Carrega as variáveis de ambiente
 load_dotenv()
 
-# Configuração CSS global
-st.markdown(
-    """
-    <style>
-        body {
-            background-color: #0F0021;
-        }
-        .main {
-            background-color: #0F0021;
-        }
-        .stTextInput>div>div>input {
-            color: white !important;
-            font-size: 16px !important;
-        }
-        .stTextInput>label {
-            color: #EEFFFC !important;
-        }
-        .stButton>button {
-            background-color: #cce7ee !important;
-            color: black !important;
-            border: none !important;
-            font-size: 16px !important;
-            padding: 8px 16px !important;
-            border-radius: 8px !important;
-            width: 100%;
-        }
-        .stButton>button:hover {
-            background-color: #aacbde !important;
-        }
-        .mensagem-box {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 16px;
-            margin: 10px 0;
-        }
-        .pergunta-box {
-            color: #cce7ee;
-            font-weight: bold;
-            text-align: right;
-        }
-        .resposta-box {
-            color: #EEFFFC;
-            text-align: left;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# Carrega o CSS externo
+with open("styles.css", "r") as css_file:
+    st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
 # Link do Google Sheets
 google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
@@ -164,23 +118,29 @@ for mensagem in st.session_state.historico:
 
 # Formulário de entrada
 with st.form(key='pergunta_form'):
-    col1, col2 = st.columns([5, 1])
-    
+    st.markdown("<div class='form-container'>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns([5, 1]) if st.session_state.get("tela_grande", True) else (st.container(), st.container())
+
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
-            placeholder="Escreva sua dúvida aqui...",
+            placeholder="Escreva sua dúvida espiritual aqui...",
             key="input_pergunta"
         )
     
     with col2:
-        st.markdown("<div style='display: flex; align-items: center; height: 100%;'>", unsafe_allow_html=True)
-        enviar = st.form_submit_button("🌀")
-        st.markdown("</div>", unsafe_allow_html=True)
+        enviar = st.form_submit_button("🌀 Enviar")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# Adiciona o aviso abaixo do campo de pergunta
+st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>", unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
         with st.spinner("Processando sua pergunta..."):
             resposta = processar_pergunta(pergunta)
             if resposta:
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+                st.session_state.input_pergunta = ""  # Reseta o campo de entrada
                 st.rerun()  # Atualiza a interface imediatamente

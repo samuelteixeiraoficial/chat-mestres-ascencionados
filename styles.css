@@ -1,0 +1,75 @@
+/* Fundo geral */
+body {
+    background-color: #0F0021;
+}
+
+/* Centraliza o título */
+h1 {
+    text-align: center;
+    color: white;
+}
+
+/* Personalização do campo de entrada */
+.stTextInput > div > div > input {
+    color: white !important;
+    font-size: 16px !important;
+}
+.stTextInput > label {
+    color: #EEFFFC !important;
+}
+
+/* Estilização do botão */
+.stButton > button {
+    background-color: #cce7ee !important;
+    color: black !important;
+    border: none !important;
+    font-size: 16px !important;
+    padding: 8px 16px !important;
+    border-radius: 8px !important;
+    width: 100%;
+}
+.stButton > button:hover {
+    background-color: #aacbde !important;
+}
+
+/* Estilos do chat */
+.mensagem-box {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    margin: 10px 0;
+}
+.pergunta-box {
+    color: #cce7ee;
+    font-weight: bold;
+    text-align: right;
+}
+.resposta-box {
+    color: #EEFFFC;
+    text-align: left;
+}
+
+/* Responsividade: botão "Enviar" fica abaixo do input no celular */
+@media (max-width: 768px) {
+    .form-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+@media (min-width: 769px) {
+    .form-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+}
+/* Aviso abaixo do campo de pergunta */
+.aviso {
+    text-align: center;
+    font-size: 12px;
+    color: #cce7ee;
+    margin-top: 5px;
+    opacity: 0.7;
+}
