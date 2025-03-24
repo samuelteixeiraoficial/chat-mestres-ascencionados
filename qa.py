@@ -9,6 +9,11 @@ load_dotenv()
 # Link do Google Sheets
 google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
 
+# Carregar o arquivo CSS
+with open("styles.css", "r") as file:
+    st.markdown(f"<style>{file.read()}</style>", unsafe_allow_html=True)
+
+
 # Carregar dados com cache
 @st.cache_resource
 def carregar_dados_cached():
