@@ -114,8 +114,18 @@ def processar_pergunta(pergunta):
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 
+# Inicializa as variáveis de estado, se necessário
 if 'historico' not in st.session_state:
     st.session_state.historico = []
+
+if 'pergunta_atual' not in st.session_state:
+    st.session_state.pergunta_atual = ""
+
+if 'processando' not in st.session_state:
+    st.session_state.processando = False
+
+if 'respostas' not in st.session_state:
+    st.session_state.respostas = []
 
 # Exibir histórico de perguntas e respostas no formato de chat
 for mensagem in st.session_state.historico:
@@ -128,27 +138,33 @@ for mensagem in st.session_state.historico:
 # Formulário de entrada
 with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
-    
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
-            placeholder="Escreva sua dúvida espiritual aqui..."
+            placeholder="Escreva sua dúvida espiritual aqui...",
+            key="input_pergunta",
+            value=st.session_state.pergunta_atual
         )
-    
     with col2:
-        st.markdown("<div style='display: flex; align-items: center; height: 100%;'>", unsafe_allow_html=True)
-        enviar = st.form_submit_button("🌀 Enviar")
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container():
+            st.markdown('<div class="center-button">', unsafe_allow_html=True)
+            enviar = st.form_submit_button("🌀 Enviar")
+            st.markdown('</div>', unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
-        with st.spinner("Processando sua pergunta..."):
-            resposta = processar_pergunta(pergunta)
-            if resposta:
-                # Adiciona pergunta e resposta no histórico
-                st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+        st.session_state.pergunta_atual = pergunta
+        st.session_state.processando = True
 
-                # Após adicionar, vamos limpar o campo de entrada sem causar conflito
-                st.experimental_rerun()  # Aqui forçamos a atualização da página
+if st.session_state.processando:
+    with st.spinner("Processando sua pergunta..."):
+        resposta = processar_pergunta(st.session_state.pergunta_atual)
+        if resposta:
+            # Adiciona a pergunta e resposta no histórico
+            st.session_state.historico.append({"pergunta": st.session_state.pergunta_atual, "resposta": resposta})
+            st.session_state.respostas.append(resposta)
+        st.session_state.processando = False
+        st.session_state.pergunta_atual = ""  # Limpa o campo de entrada
+        time.sleep(0.1)  # Garante que a interface será atualizada
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
