@@ -150,8 +150,8 @@ with st.form(key='pergunta_form'):
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
                 # Incrementar o contador para resetar o campo de entrada
                 st.session_state.input_key = input_key + 1
-                # Não tentamos redefinir diretamente, apenas forçamos a mudança da chave
-                st.experimental_rerun()  # Atualiza a interface imediatamente
+                # Aqui não usamos mais o st.experimental_rerun()
+                # A interface será automaticamente atualizada
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
