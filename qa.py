@@ -151,10 +151,6 @@ def processar_pergunta(pergunta):
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 
-# Inicializa a chave 'processando' no session_state, se não estiver presente
-if 'processando' not in st.session_state:
-    st.session_state.processando = False
-
 if 'historico' not in st.session_state:
     st.session_state.historico = []
 
@@ -183,18 +179,8 @@ with st.form(key='pergunta_form'):
         st.markdown("</div>", unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
-        st.session_state.pergunta_atual = pergunta
-        st.session_state.processando = True
-
-# Processa a pergunta imediatamente e só chama o rerun quando necessário
-if st.session_state.processando:
-    with st.spinner("Processando sua pergunta..."):
-        resposta = processar_pergunta(st.session_state.pergunta_atual)
-        if resposta:
-            # Adiciona a pergunta e resposta no histórico
-            st.session_state.historico.append({"pergunta": st.session_state.pergunta_atual, "resposta": resposta})
-            st.session_state.pergunta_atual = ""  # Limpa o campo de entrada
-        st.session_state.processando = False
-        
-        # Chama o rerun apenas depois de processar a resposta
-        st.experimental_rerun()  # Atualiza a interface automaticamente
+        with st.spinner("Processando sua pergunta..."):
+            resposta = processar_pergunta(pergunta)
+            if resposta:
+                st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+                st.rerun()  # Atualiza a interface imediatamente
