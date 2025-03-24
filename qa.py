@@ -172,5 +172,15 @@ if enviar and pergunta.strip():
     # Reseta o campo de entrada
     st.session_state.pergunta_atual = ""  # Define como string vazia
 
-    # Força a atualização da interface
-    st.experimental_rerun()
+# Exibe as respostas no formato de chat
+for item in reversed(st.session_state.respostas):  # Exibe as respostas na ordem correta
+    st.markdown(
+        f"<div style='background-color:#3D348B; padding: 10px; border-radius: 10px; color:#EEFFFC;'>"
+        f"<b>Pergunta:</b><br>{item['pergunta']}</div>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        f"<div style='background-color:#2A255E; padding: 10px; border-radius: 10px; color:#EEFFFC;'>"
+        f"<b>Resposta:</b><br>{item['resposta']}</div>",
+        unsafe_allow_html=True
+    )
