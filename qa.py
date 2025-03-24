@@ -42,13 +42,21 @@ st.markdown(
         .stButton>button:hover {
             background-color: #aacbde !important;
         }
-        .resposta-box {
+        .mensagem-box {
             background-color: rgba(255, 255, 255, 0.1);
             padding: 15px;
             border-radius: 10px;
-            color: #EEFFFC;
             font-size: 16px;
             margin: 10px 0;
+        }
+        .pergunta-box {
+            color: #cce7ee;
+            font-weight: bold;
+            text-align: right;
+        }
+        .resposta-box {
+            color: #EEFFFC;
+            text-align: left;
         }
     </style>
     """,
@@ -143,16 +151,16 @@ def processar_pergunta(pergunta):
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 
-if 'respostas' not in st.session_state:
-    st.session_state.respostas = []
-if 'pergunta_atual' not in st.session_state:
-    st.session_state.pergunta_atual = ""
-if 'processando' not in st.session_state:
-    st.session_state.processando = False
+if 'historico' not in st.session_state:
+    st.session_state.historico = []
 
-# Exibir respostas anteriores de forma organizada
-for resposta in reversed(st.session_state.respostas):
-    st.markdown(f"<div class='resposta-box'><b>Resposta:</b><br>{resposta}</div>", unsafe_allow_html=True)
+# Exibir histórico de perguntas e respostas no formato de chat
+for mensagem in st.session_state.historico:
+    pergunta, resposta = mensagem["pergunta"], mensagem["resposta"]
+    st.markdown(f"""
+        <div class='mensagem-box pergunta-box'>👤 {pergunta}</div>
+        <div class='mensagem-box resposta-box'>🤖 {resposta}</div>
+    """, unsafe_allow_html=True)
 
 # Formulário de entrada
 with st.form(key='pergunta_form'):
@@ -161,25 +169,18 @@ with st.form(key='pergunta_form'):
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
-            placeholder="Escreva sua dúvida espiritual aqui...",
-            key="input_pergunta",
-            value=st.session_state.pergunta_atual
+            placeholder="Escreva sua dúvida aqui...",
+            key="input_pergunta"
         )
     
     with col2:
         st.markdown("<div style='display: flex; align-items: center; height: 100%;'>", unsafe_allow_html=True)
-        enviar = st.form_submit_button("🌀 Enviar")
+        enviar = st.form_submit_button("🌀")
         st.markdown("</div>", unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
-        st.session_state.pergunta_atual = pergunta
-        st.session_state.processando = True
-
-if st.session_state.processando:
-    with st.spinner("Processando sua pergunta..."):
-        resposta = processar_pergunta(st.session_state.pergunta_atual)
-        if resposta:
-            st.session_state.respostas.insert(0, resposta)  # Adiciona a nova resposta no topo
-        st.session_state.processando = False
-        st.session_state.pergunta_atual = ""
-        time.sleep(0.1)  # Garante a atualização da interface
+        with st.spinner("Processando sua pergunta..."):
+            resposta = processar_pergunta(pergunta)
+            if resposta:
+                st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+                st.rerun()  # Atualiza a interface imediatamente
