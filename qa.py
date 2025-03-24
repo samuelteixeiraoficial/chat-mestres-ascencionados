@@ -130,11 +130,9 @@ with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
     
     with col1:
-        input_key = st.session_state.get("input_key", 0)
         pergunta = st.text_input(
             "Sua pergunta:",
-            placeholder="Escreva sua dúvida espiritual aqui...",
-            key=f"input_pergunta_{input_key}"  # Chave baseada no contador
+            placeholder="Escreva sua dúvida espiritual aqui..."
         )
     
     with col2:
@@ -148,10 +146,9 @@ with st.form(key='pergunta_form'):
             if resposta:
                 # Adiciona pergunta e resposta no histórico
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                # Incrementar o contador para resetar o campo de entrada
-                st.session_state.input_key = input_key + 1
-                # Atualiza a interface manualmente
-                st.experimental_rerun()  # Força a atualização da interface
+
+                # Após adicionar, vamos limpar o campo de entrada sem causar conflito
+                st.experimental_rerun()  # Aqui forçamos a atualização da página
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
