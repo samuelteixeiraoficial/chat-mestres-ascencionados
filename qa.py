@@ -60,4 +60,4 @@ with st.form(key='pergunta_form'):
             resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
             if resposta:
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                st.experimental_rerun()  # Rerun mais eficiente
+                st.rerun()  # Rerun mais eficiente
