@@ -13,31 +13,49 @@ import time
 # Carrega as variáveis de ambiente
 load_dotenv()
 
-# Configuração CSS para centralizar o botão na coluna
+# Configuração CSS global
 st.markdown(
     """
     <style>
-    .center-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-    .stButton>button {
-        background-color: #3D348B;
-        color: white;
-        border: none;
-    }
-    .stButton>button:hover {
-        background-color: #2A255E;
-        color: white;
-    }
+        body {
+            background-color: #0F0021;
+        }
+        .main {
+            background-color: #0F0021;
+        }
+        .stTextInput>div>div>input {
+            color: white !important;
+            font-size: 16px !important;
+        }
+        .stTextInput>label {
+            color: #EEFFFC !important;
+        }
+        .stButton>button {
+            background-color: #cce7ee !important;
+            color: black !important;
+            border: none !important;
+            font-size: 16px !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            width: 100%;
+        }
+        .stButton>button:hover {
+            background-color: #aacbde !important;
+        }
+        .resposta-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            color: #EEFFFC;
+            font-size: 16px;
+            margin: 10px 0;
+        }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# Link público do Google Sheets
+# Link do Google Sheets
 google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
 
 @st.cache_resource
@@ -132,29 +150,26 @@ if 'pergunta_atual' not in st.session_state:
 if 'processando' not in st.session_state:
     st.session_state.processando = False
 
-for resposta in st.session_state.respostas:
-    st.markdown(
-        f"<div style='margin: 20px 0; padding: 15px; border-radius: 10px; background-color: #f0f2f6;'>"
-        f"<b>Resposta:</b><br>{resposta}"
-        f"</div>", 
-        unsafe_allow_html=True
-    )
+# Exibir respostas anteriores de forma organizada
+for resposta in reversed(st.session_state.respostas):
+    st.markdown(f"<div class='resposta-box'><b>Resposta:</b><br>{resposta}</div>", unsafe_allow_html=True)
 
 # Formulário de entrada
 with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
+    
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
-            placeholder="Escreva sua dúvida aqui...",
+            placeholder="Escreva sua dúvida espiritual aqui...",
             key="input_pergunta",
             value=st.session_state.pergunta_atual
         )
+    
     with col2:
-        with st.container():
-            st.markdown('<div class="center-button">', unsafe_allow_html=True)
-            enviar = st.form_submit_button(" ⬆️ ")
-            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("<div style='display: flex; align-items: center; height: 100%;'>", unsafe_allow_html=True)
+        enviar = st.form_submit_button("🌀 Enviar")
+        st.markdown("</div>", unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
         st.session_state.pergunta_atual = pergunta
@@ -164,7 +179,7 @@ if st.session_state.processando:
     with st.spinner("Processando sua pergunta..."):
         resposta = processar_pergunta(st.session_state.pergunta_atual)
         if resposta:
-            st.session_state.respostas.append(resposta)
+            st.session_state.respostas.insert(0, resposta)  # Adiciona a nova resposta no topo
         st.session_state.processando = False
         st.session_state.pergunta_atual = ""
         time.sleep(0.1)  # Garante a atualização da interface
