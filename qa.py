@@ -148,6 +148,16 @@ with st.form(key='pergunta_form'):
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
             unsafe_allow_html=True)
 
+# Inicializa variáveis de estado se não existirem
+if 'respostas' not in st.session_state:
+    st.session_state.respostas = []
+
+if 'pergunta_atual' not in st.session_state:
+    st.session_state.pergunta_atual = ""
+
+if 'processando' not in st.session_state:
+    st.session_state.processando = False
+
 # Processamento da pergunta
 if enviar and pergunta.strip():
     st.session_state.pergunta_atual = pergunta
@@ -156,7 +166,8 @@ if enviar and pergunta.strip():
     # Aguarda o processamento da pergunta
     resposta = processar_pergunta(pergunta)
     if resposta:
-        st.session_state.respostas.insert(0, {"pergunta": pergunta, "resposta": resposta})
+        # Agora garantimos que 'respostas' existe antes de usá-la
+        st.session_state.respostas.append({"pergunta": pergunta, "resposta": resposta})
 
     # Reseta o campo de entrada
     st.session_state.pergunta_atual = ""  # Define como string vazia
