@@ -13,6 +13,7 @@ google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8C
 with open("styles.css", "r") as file:
     st.markdown(f"<style>{file.read()}</style>", unsafe_allow_html=True)
 
+
 # Carregar dados com cache
 @st.cache_resource
 def carregar_dados_cached():
@@ -48,11 +49,10 @@ with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
     
     with col1:
-        # Usando st.session_state para controlar o valor do campo de input
         pergunta = st.text_input(
             "Sua pergunta:",
             placeholder="Escreva sua dúvida aqui...",
-            key="input_pergunta"  # Associando o campo de entrada com a session_state
+            key="input_pergunta"
         )
     
     with col2:
@@ -64,12 +64,7 @@ with st.form(key='pergunta_form'):
         with st.spinner("Digitando..."):
             resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
             if resposta:
-                # Adiciona a pergunta e resposta ao histórico
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                
-                # Limpar o campo de entrada
-                st.session_state.input_pergunta = ""  # Resetando o valor no session_state
-
                 st.rerun()  # Rerun mais eficiente
 
 # Adiciona o aviso abaixo do campo de pergunta
