@@ -19,28 +19,53 @@ google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8C
 try:
     # Faz o download do CSV
     response = requests.get(google_sheets_csv_url)
-    response.raise_for_status()  # Verifica se a requisição foi bem-sucedida
+    response.raise_for_status()
 
     # Usa o pandas para ler o CSV
     df = pd.read_csv(StringIO(response.text))
 
-    # Converte o DataFrame para uma lista de objetos Document (formato esperado pelo LangChain)
-    documents = [Document(page_content=row.to_string()) for _, row in df.iterrows()]
+    # Converte as colunas "Pergunta" e "Resposta" para documentos
+    perguntas_docs = []
+    respostas_docs = []
+    for _, row in df.iterrows():
+        perguntas_docs.append(
+            Document(page_content=row["Pergunta"], metadata={"resposta": row["Resposta"]})
+        )
+        respostas_docs.append(Document(page_content=row["Resposta"]))
+
 except Exception as e:
     st.error(f"Erro ao carregar o CSV: {e}")
 
 # Configuração dos embeddings
 embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2")
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
 
-# Cria o banco de dados de vetores com FAISS
-db = FAISS.from_documents(documents, embeddings)
+# Cria dois bancos de dados FAISS
+db_perguntas = FAISS.from_documents(perguntas_docs, embeddings)  # Para buscar perguntas
+db_respostas = FAISS.from_documents(respostas_docs, embeddings)  # Para buscar respostas
 
 # Função para buscar documentos semelhantes
 def retrieve_info(query):
-    # Busca os 7 documentos mais semelhantes
-    similar_response = db.similarity_search(query, k=7)
-    return [doc.page_content for doc in similar_response]
+    # Busca as 4 perguntas mais semelhantes com suas pontuações de similaridade
+    similar_perguntas = db_perguntas.similarity_search_with_score(query, k=4)
+    
+    # Verifica se alguma pergunta tem similaridade >= 20% (ajuste o limiar conforme necessário)
+    usar_respostas = True
+    for doc, score in similar_perguntas:
+        if score >= 0.2:  # Se a similaridade for maior ou igual a 20%
+            usar_respostas = False
+            break
+    
+    if not usar_respostas:
+        # Método 2: Usa as respostas das perguntas semelhantes
+        contextos = [doc.metadata["resposta"] for doc, _ in similar_perguntas]
+    else:
+        # Método 1: Busca diretamente nas respostas
+        similar_respostas = db_respostas.similarity_search(query, k=7)
+        contextos = [doc.page_content for doc in similar_respostas]
+    
+    return contextos
 
 # Configuração da API da DeepSeek
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
@@ -65,22 +90,20 @@ Siga todas as regras abaixo:
 4/ Algumas questões e perguntas do user não precisam ser respondidas diretamente ao user, pois a reflexão e meditação deve fazer parte da jornada de aprendizado do user. Inclusive algumas respostas criadas por você podem ser tão profundas que o user precisaria de dias, meses ou até anos para compreender completamente, onde certamente ele não esperaria receber tal resposta, mas certifique-se de usar a lógica com base no contexto.
 
 5/ Metáforas podem algumas vezes serem criadas por você, principalmente quando no contexto não houver um conteúdo que respondas mais diretamente a pergunta do user, onde nesse caso é mais necessário uma reflexão com metáforas. Porém nunca deixe transparecer nas metáforas que alguém ou alguma coisa seja melhor, mais importante ou mais valioso do que outra coisa em caso de comparações metafóricas.
-git add .
-git commit -m "Prioriza contexto exato para perguntas sobre Laércio Fonseca"
-git push origin main
+
 6/ Algumas respostas podem ser curtas, outras podem ser longas exatamente como nos modelos do contexto, pois o mais importante é falar o necessário e apenas o necessário.
 
-7/ **Valores Espirituais**:
+7/ *Valores Espirituais*:
    - Sempre promova a expansão da consciência e a busca pela sabedoria. Nunca sugira que o excesso de sabedoria ou consciência seja prejudicial.
    - Defenda o vegetarianismo como parte da jornada espiritual. Evite justificar o consumo de carne ou glorificar rituais que envolvam o sofrimento de seres vivos.
 
-8/ **Respostas sobre Laércio Fonseca**:
+8/ *Respostas sobre Laércio Fonseca*:
    - Se a pergunta for sobre "Quem é Laércio" ou "Laércio Fonseca", a resposta deve ser 90% baseada no contexto do banco de dados, com no máximo 10% de variação. Priorize o conteúdo exato do contexto.
 
 Pergunta:
 {pergunta}
 
-Escreva a melhor resposta que eu deveria enviar para o user. A resposta deve ser sempre em português e alinhada com os valores espirituais mencionados acima.
+Escreva a melhor resposta que eu deveria enviar para o user. A resposta deve ser sempre em português e alinhada com os valores espirituais mencionados acima.
 """
 
 # Cria o PromptTemplate
@@ -97,60 +120,36 @@ def call_deepseek_api(prompt):
             "Content-Type": "application/json"
         }
         data = {
-            "model": "deepseek-chat",  # Substitua pelo modelo correto, se necessário
+            "model": "deepseek-chat",
             "messages": [
-                {
-                    "role": "user",  # Papel do usuário
-                    "content": prompt  # Conteúdo da mensagem
-                }
+                {"role": "user", "content": prompt}
             ],
             "max_tokens": 500,
-            "temperature": 0.3,
-            "language": "pt"  # Força o idioma da resposta para português
+            "temperature": 0.5,
+            "language": "pt"
         }
         response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
-        response.raise_for_status()  # Levanta uma exceção para erros HTTP
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         st.error(f"Erro ao chamar a API da DeepSeek: {e}")
         return None
 
-# Função para verificar se a pergunta é sobre Laércio Fonseca
-def is_about_laercio(pergunta):
-    keywords = ["laércio", "laercio", "fonseca"]
-    return any(keyword in pergunta.lower() for keyword in keywords)
-
 # Interface do Streamlit
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
-
-# Campo de entrada para a pergunta
 user_input = st.text_input("Faça sua pergunta:")
 
 if user_input:
     if not user_input.strip():
         st.error("Por favor, insira uma pergunta.")
     else:
-        # Busca documentos semelhantes
         contextos = retrieve_info(user_input)
-
-        # Combina os contextos em um único texto
         contexto_completo = "\n".join(contextos)
-
-        # Verifica se a pergunta é sobre Laércio Fonseca
-        if is_about_laercio(user_input):
-            # Se for sobre Laércio, prioriza o contexto exato
-            resposta_final = contexto_completo  # 90% do contexto
+        prompt_final = prompt_template.format(contexto=contexto_completo, pergunta=user_input)
+        resposta = call_deepseek_api(prompt_final)
+        
+        if resposta:
+            st.write("**Resposta:**")
+            st.write(resposta["choices"][0]["message"]["content"])
         else:
-            # Cria o prompt com o template principal
-            prompt_final = prompt_template.format(
-                contexto=contexto_completo,
-                pergunta=user_input
-            )
-
-            # Chama a API da DeepSeek
-            resposta = call_deepseek_api(prompt_final)
-            resposta_final = resposta["choices"][0]["message"]["content"] if resposta else "Não foi possível obter uma resposta."
-
-        # Exibe a resposta
-        st.write("**Resposta:**")
-        st.write(resposta_final)
+            st.write("Não foi possível obter uma resposta.")
