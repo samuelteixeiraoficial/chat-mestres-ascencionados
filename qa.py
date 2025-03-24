@@ -130,10 +130,12 @@ with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
     
     with col1:
+        # A chave será modificada para garantir o reset do campo
+        input_key = st.session_state.get("input_key", 0)
         pergunta = st.text_input(
             "Sua pergunta:",
             placeholder="Escreva sua dúvida espiritual aqui...",
-            key="input_pergunta"
+            key=f"input_pergunta_{input_key}"  # Chave baseada no contador
         )
     
     with col2:
@@ -146,7 +148,9 @@ with st.form(key='pergunta_form'):
             resposta = processar_pergunta(pergunta)
             if resposta:
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                # Não tenta redefinir diretamente, apenas força o rerun
+                # Incrementar o contador para resetar o campo de entrada
+                st.session_state.input_key = input_key + 1
+                # Não tentamos redefinir diretamente, apenas forçamos a mudança da chave
                 st.experimental_rerun()  # Atualiza a interface imediatamente
 
 # Adiciona o aviso abaixo do campo de pergunta
