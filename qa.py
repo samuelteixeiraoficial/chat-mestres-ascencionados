@@ -151,6 +151,10 @@ def processar_pergunta(pergunta):
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 
+# Inicializa a chave 'processando' no session_state, se não estiver presente
+if 'processando' not in st.session_state:
+    st.session_state.processando = False
+
 if 'historico' not in st.session_state:
     st.session_state.historico = []
 
