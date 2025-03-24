@@ -40,8 +40,8 @@ if 'historico' not in st.session_state:
 for mensagem in st.session_state.historico:
     pergunta, resposta = mensagem["pergunta"], mensagem["resposta"]
     st.markdown(f"""
-        <div class='mensagem-box pergunta-box' style="text-align:right;">👤 {pergunta}</div>
-        <div class='mensagem-box resposta-box' style="text-align:left;">🤖 {resposta}</div>
+        <div class='mensagem-box pergunta-box' style="text-align:right;">🙃 {pergunta}</div>
+        <div class='mensagem-box resposta-box' style="text-align:left;">👽 {resposta}</div>
     """, unsafe_allow_html=True)
 
 # Formulário de entrada
@@ -61,7 +61,7 @@ with st.form(key='pergunta_form'):
         st.markdown("</div>", unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
-        with st.spinner("Processando sua pergunta..."):
+        with st.spinner("Digitando..."):
             resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
             if resposta:
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
