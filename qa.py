@@ -127,60 +127,29 @@ for mensagem in st.session_state.historico:
 
 # Formulário de entrada
 with st.form(key='pergunta_form'):
-    st.markdown("<div class='form-container'>", unsafe_allow_html=True)
-
-    col1, col2 = st.columns([5, 1]) if st.session_state.get(
-        "tela_grande", True) else (st.container(), st.container())
-
+    col1, col2 = st.columns([5, 1])
+    
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
             placeholder="Escreva sua dúvida espiritual aqui...",
             key="input_pergunta"
         )
-
+    
     with col2:
+        st.markdown("<div style='display: flex; align-items: center; height: 100%;'>", unsafe_allow_html=True)
         enviar = st.form_submit_button("🌀 Enviar")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
+    if enviar and pergunta.strip():
+        with st.spinner("Processando sua pergunta..."):
+            resposta = processar_pergunta(pergunta)
+            if resposta:
+                st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+                # Reseta o campo de entrada
+                st.session_state.input_pergunta = ""  # Limpa o texto da pergunta anterior
+                st.experimental_rerun()  # Atualiza a interface imediatamente
+                
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
             unsafe_allow_html=True)
-
-# Inicializa variáveis de estado se não existirem
-if 'respostas' not in st.session_state:
-    st.session_state.respostas = []
-
-if 'pergunta_atual' not in st.session_state:
-    st.session_state.pergunta_atual = ""
-
-if 'processando' not in st.session_state:
-    st.session_state.processando = False
-
-# Processamento da pergunta
-if enviar and pergunta.strip():
-    st.session_state.pergunta_atual = pergunta
-    st.session_state.processando = True
-
-    # Aguarda o processamento da pergunta
-    resposta = processar_pergunta(pergunta)
-    if resposta:
-        # Agora garantimos que 'respostas' existe antes de usá-la
-        st.session_state.respostas.append({"pergunta": pergunta, "resposta": resposta})
-
-    # Reseta o campo de entrada
-    st.session_state.pergunta_atual = ""  # Define como string vazia
-
-# Exibe as respostas no formato de chat
-for item in reversed(st.session_state.respostas):  # Exibe as respostas na ordem correta
-    st.markdown(
-        f"<div style='background-color:#3D348B; padding: 10px; border-radius: 10px; color:#EEFFFC;'>"
-        f"<b>Pergunta:</b><br>{item['pergunta']}</div>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        f"<div style='background-color:#2A255E; padding: 10px; border-radius: 10px; color:#EEFFFC;'>"
-        f"<b>Resposta:</b><br>{item['resposta']}</div>",
-        unsafe_allow_html=True
-    )
