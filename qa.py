@@ -146,12 +146,12 @@ with st.form(key='pergunta_form'):
         with st.spinner("Processando sua pergunta..."):
             resposta = processar_pergunta(pergunta)
             if resposta:
+                # Adiciona pergunta e resposta no histórico
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
                 # Incrementar o contador para resetar o campo de entrada
                 st.session_state.input_key = input_key + 1
-                # Atualiza imediatamente a interface após a submissão
-
-                # Não é necessário mais usar st.experimental_rerun()
+                # Atualiza a interface manualmente
+                st.experimental_rerun()  # Força a atualização da interface
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
