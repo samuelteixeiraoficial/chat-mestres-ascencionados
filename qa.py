@@ -146,8 +146,7 @@ with st.form(key='pergunta_form'):
             resposta = processar_pergunta(pergunta)
             if resposta:
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                # Reseta o campo de entrada corretamente com o uso de session_state diretamente
-                st.session_state.input_pergunta = ""  # Limpa o texto da pergunta anterior
+                # Não tenta redefinir diretamente, apenas força o rerun
                 st.experimental_rerun()  # Atualiza a interface imediatamente
 
 # Adiciona o aviso abaixo do campo de pergunta
