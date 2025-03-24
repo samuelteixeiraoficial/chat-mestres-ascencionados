@@ -13,10 +13,16 @@ import time
 # Carrega as variáveis de ambiente
 load_dotenv()
 
-# Configuração CSS para o botão
+# Configuração CSS para centralizar o botão na coluna
 st.markdown(
     """
     <style>
+    .center-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
     .stButton>button {
         background-color: #3D348B;
         color: white;
@@ -34,7 +40,6 @@ st.markdown(
 # Link público do Google Sheets
 google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
 
-# Carrega e processa o CSV
 @st.cache_resource
 def carregar_dados():
     try:
@@ -68,7 +73,6 @@ def carregar_dados():
 
 db_perguntas, db_respostas = carregar_dados()
 
-# Carrega o template do arquivo
 def carregar_template():
     try:
         with open("prompt_template.txt", "r", encoding="utf-8") as file:
@@ -79,10 +83,8 @@ def carregar_template():
 
 template = carregar_template()
 
-# Função para processar perguntas
 def processar_pergunta(pergunta):
     try:
-        # Busca contexto
         similar_perguntas = db_perguntas.similarity_search_with_score(pergunta, k=4)
         usar_respostas = all(score < 0.2 for _, score in similar_perguntas)
         
@@ -91,7 +93,6 @@ def processar_pergunta(pergunta):
         else:
             contextos = [doc.metadata["resposta"] for doc, _ in similar_perguntas]
         
-        # Monta o prompt
         prompt = PromptTemplate(
             template=template,
             input_variables=["contexto", "pergunta"]
@@ -100,14 +101,13 @@ def processar_pergunta(pergunta):
             pergunta=pergunta
         )
         
-        # Chama a API
         headers = {"Authorization": f"Bearer {os.getenv('DEEPSEEK_API_KEY')}"}
         data = {
             "model": "deepseek-chat",
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 500,
             "temperature": 0.5,
-            "language": "pt-BR"  # Português do Brasil especificado
+            "language": "pt-BR"
         }
         
         resposta = requests.post(
@@ -125,7 +125,6 @@ def processar_pergunta(pergunta):
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 
-# Inicializa o estado da sessão
 if 'respostas' not in st.session_state:
     st.session_state.respostas = []
 if 'pergunta_atual' not in st.session_state:
@@ -133,7 +132,6 @@ if 'pergunta_atual' not in st.session_state:
 if 'processando' not in st.session_state:
     st.session_state.processando = False
 
-# Exibe histórico de respostas
 for resposta in st.session_state.respostas:
     st.markdown(
         f"<div style='margin: 20px 0; padding: 15px; border-radius: 10px; background-color: #f0f2f6;'>"
@@ -142,33 +140,26 @@ for resposta in st.session_state.respostas:
         unsafe_allow_html=True
     )
 
-# Campo de entrada de pergunta
+# Formulário de entrada
 with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
-    
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
             placeholder="Escreva sua dúvida aqui...",
             key="input_pergunta",
-            value=st.session_state.get("pergunta_atual", "")
+            value=st.session_state.pergunta_atual
         )
-    
     with col2:
-        st.markdown(
-            "<div style='display: flex; align-items: center; height: 100%; justify-content: center;'>"
-            "<button type='submit' style='font-size: 1.5em;'>⬆️</button>"
-            "</div>",
-            unsafe_allow_html=True
-        )
-    
-    enviar = st.form_submit_button("Enviar")
+        with st.container():
+            st.markdown('<div class="center-button">', unsafe_allow_html=True)
+            enviar = st.form_submit_button(" ⬆️ ")
+            st.markdown('</div>', unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
         st.session_state.pergunta_atual = pergunta
         st.session_state.processando = True
 
-# Processamento da pergunta
 if st.session_state.processando:
     with st.spinner("Processando sua pergunta..."):
         resposta = processar_pergunta(st.session_state.pergunta_atual)
@@ -176,4 +167,4 @@ if st.session_state.processando:
             st.session_state.respostas.append(resposta)
         st.session_state.processando = False
         st.session_state.pergunta_atual = ""
-        st.experimental_rerun()
+        time.sleep(0.1)  # Garante a atualização da interface
