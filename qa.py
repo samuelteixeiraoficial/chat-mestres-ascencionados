@@ -13,13 +13,58 @@ import time
 # Carrega as variáveis de ambiente
 load_dotenv()
 
-# Carrega o CSS externo
-with open("styles.css", "r") as css_file:
-    st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
+# Configuração CSS global
+st.markdown(
+    """
+    <style>
+        body {
+            background-color: #0F0021;
+        }
+        .main {
+            background-color: #0F0021;
+        }
+        .stTextInput>div>div>input {
+            color: white !important;
+            font-size: 16px !important;
+        }
+        .stTextInput>label {
+            color: #EEFFFC !important;
+        }
+        .stButton>button {
+            background-color: #cce7ee !important;
+            color: black !important;
+            border: none !important;
+            font-size: 16px !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            width: 100%;
+        }
+        .stButton>button:hover {
+            background-color: #aacbde !important;
+        }
+        .mensagem-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .pergunta-box {
+            color: #cce7ee;
+            font-weight: bold;
+            text-align: right;
+        }
+        .resposta-box {
+            color: #EEFFFC;
+            text-align: left;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Link do Google Sheets
 google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
-
 
 @st.cache_resource
 def carregar_dados():
@@ -39,22 +84,20 @@ def carregar_dados():
                 respostas_docs.append(Document(
                     page_content=row["Resposta"]
                 ))
-
+        
         embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
         db_perguntas = FAISS.from_documents(perguntas_docs, embeddings)
         db_respostas = FAISS.from_documents(respostas_docs, embeddings)
-
+        
         return db_perguntas, db_respostas
-
+        
     except Exception as e:
         st.error(f"Erro ao carregar o CSV: {e}")
         st.stop()
 
-
 db_perguntas, db_respostas = carregar_dados()
-
 
 def carregar_template():
     try:
@@ -64,23 +107,18 @@ def carregar_template():
         st.error(f"Erro ao carregar o template: {e}")
         st.stop()
 
-
 template = carregar_template()
-
 
 def processar_pergunta(pergunta):
     try:
-        similar_perguntas = db_perguntas.similarity_search_with_score(
-            pergunta, k=4)
+        similar_perguntas = db_perguntas.similarity_search_with_score(pergunta, k=4)
         usar_respostas = all(score < 0.2 for _, score in similar_perguntas)
-
+        
         if usar_respostas:
-            contextos = [
-                doc.page_content for doc in db_respostas.similarity_search(pergunta, k=7)]
+            contextos = [doc.page_content for doc in db_respostas.similarity_search(pergunta, k=7)]
         else:
-            contextos = [doc.metadata["resposta"]
-                         for doc, _ in similar_perguntas]
-
+            contextos = [doc.metadata["resposta"] for doc, _ in similar_perguntas]
+        
         prompt = PromptTemplate(
             template=template,
             input_variables=["contexto", "pergunta"]
@@ -88,7 +126,7 @@ def processar_pergunta(pergunta):
             contexto="\n".join(contextos),
             pergunta=pergunta
         )
-
+        
         headers = {"Authorization": f"Bearer {os.getenv('DEEPSEEK_API_KEY')}"}
         data = {
             "model": "deepseek-chat",
@@ -97,35 +135,24 @@ def processar_pergunta(pergunta):
             "temperature": 0.5,
             "language": "pt-BR"
         }
-
+        
         resposta = requests.post(
             "https://api.deepseek.com/chat/completions",
             headers=headers,
             json=data
         ).json()
-
+        
         return resposta["choices"][0]["message"]["content"]
-
+    
     except Exception as e:
         st.error(f"Erro no processamento: {str(e)}")
         return None
 
-
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 
-# Inicializa as variáveis de estado, se necessário
 if 'historico' not in st.session_state:
     st.session_state.historico = []
-
-if 'pergunta_atual' not in st.session_state:
-    st.session_state.pergunta_atual = ""
-
-if 'processando' not in st.session_state:
-    st.session_state.processando = False
-
-if 'respostas' not in st.session_state:
-    st.session_state.respostas = []
 
 # Exibir histórico de perguntas e respostas no formato de chat
 for mensagem in st.session_state.historico:
@@ -138,34 +165,30 @@ for mensagem in st.session_state.historico:
 # Formulário de entrada
 with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
+    
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
             placeholder="Escreva sua dúvida espiritual aqui...",
-            key="input_pergunta",
-            value=st.session_state.pergunta_atual
+            key="input_pergunta"
         )
+    
     with col2:
-        with st.container():
-            st.markdown('<div class="center-button">', unsafe_allow_html=True)
-            enviar = st.form_submit_button("🌀 Enviar")
-            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("<div style='display: flex; align-items: center; height: 100%;'>", unsafe_allow_html=True)
+        enviar = st.form_submit_button("🌀 Enviar")
+        st.markdown("</div>", unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
         st.session_state.pergunta_atual = pergunta
         st.session_state.processando = True
 
+# Processa a pergunta imediatamente
 if st.session_state.processando:
     with st.spinner("Processando sua pergunta..."):
         resposta = processar_pergunta(st.session_state.pergunta_atual)
         if resposta:
             # Adiciona a pergunta e resposta no histórico
             st.session_state.historico.append({"pergunta": st.session_state.pergunta_atual, "resposta": resposta})
-            st.session_state.respostas.append(resposta)
         st.session_state.processando = False
         st.session_state.pergunta_atual = ""  # Limpa o campo de entrada
-        time.sleep(0.1)  # Garante que a interface será atualizada
-
-# Adiciona o aviso abaixo do campo de pergunta
-st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
-            unsafe_allow_html=True)
+        st.experimental_rerun()  # Atualiza a interface automaticamente
