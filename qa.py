@@ -46,13 +46,13 @@ with st.form(key='pergunta_form'):
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
-            placeholder="Escreva sua dúvida espiritual aqui...",
+            placeholder="Escreva sua dúvida aqui...",
             key="input_pergunta"
         )
     
     with col2:
         st.markdown("<div style='display: flex; align-items: center; height: 100%;'>", unsafe_allow_html=True)
-        enviar = st.form_submit_button("🌀 Enviar")
+        enviar = st.form_submit_button(" ⬆️ ")
         st.markdown("</div>", unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
@@ -61,3 +61,7 @@ with st.form(key='pergunta_form'):
             if resposta:
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
                 st.rerun()  # Rerun mais eficiente
+
+# Adiciona o aviso abaixo do campo de pergunta
+st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
+            unsafe_allow_html=True)
