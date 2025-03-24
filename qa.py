@@ -13,7 +13,6 @@ google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8C
 with open("styles.css", "r") as file:
     st.markdown(f"<style>{file.read()}</style>", unsafe_allow_html=True)
 
-
 # Carregar dados com cache
 @st.cache_resource
 def carregar_dados_cached():
@@ -64,7 +63,10 @@ with st.form(key='pergunta_form'):
         with st.spinner("Digitando..."):
             resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
             if resposta:
+                # Adiciona a pergunta e resposta ao histórico
                 st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+                # Limpa o campo de entrada
+                st.session_state.input_pergunta = ""  # Resetando o campo
                 st.rerun()  # Rerun mais eficiente
 
 # Adiciona o aviso abaixo do campo de pergunta
