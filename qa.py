@@ -145,16 +145,25 @@ for resposta in st.session_state.respostas:
 # Campo de entrada de pergunta
 with st.form(key='pergunta_form'):
     col1, col2 = st.columns([5, 1])
+    
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
             placeholder="Escreva sua dúvida aqui...",
             key="input_pergunta",
-            value=st.session_state.pergunta_atual
+            value=st.session_state.get("pergunta_atual", "")
         )
-    with col2:
-        enviar = st.form_submit_button(" ⬆️ ")
     
+    with col2:
+        st.markdown(
+            "<div style='display: flex; align-items: center; height: 100%; justify-content: center;'>"
+            "<button type='submit' style='font-size: 1.5em;'>⬆️</button>"
+            "</div>",
+            unsafe_allow_html=True
+        )
+    
+    enviar = st.form_submit_button("Enviar")
+
     if enviar and pergunta.strip():
         st.session_state.pergunta_atual = pergunta
         st.session_state.processando = True
