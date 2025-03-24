@@ -186,13 +186,15 @@ with st.form(key='pergunta_form'):
         st.session_state.pergunta_atual = pergunta
         st.session_state.processando = True
 
-# Processa a pergunta imediatamente
+# Processa a pergunta imediatamente e só chama o rerun quando necessário
 if st.session_state.processando:
     with st.spinner("Processando sua pergunta..."):
         resposta = processar_pergunta(st.session_state.pergunta_atual)
         if resposta:
             # Adiciona a pergunta e resposta no histórico
             st.session_state.historico.append({"pergunta": st.session_state.pergunta_atual, "resposta": resposta})
+            st.session_state.pergunta_atual = ""  # Limpa o campo de entrada
         st.session_state.processando = False
-        st.session_state.pergunta_atual = ""  # Limpa o campo de entrada
+        
+        # Chama o rerun apenas depois de processar a resposta
         st.experimental_rerun()  # Atualiza a interface automaticamente
