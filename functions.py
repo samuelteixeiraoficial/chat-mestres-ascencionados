@@ -18,29 +18,29 @@ def carregar_dados(google_sheets_csv_url):
         print("Baixando CSV...")
         response = requests.get(google_sheets_csv_url)
         response.raise_for_status()
-        print("CSV baixado com sucesso.")
 
+        print("CSV baixado com sucesso!")
         df = pd.read_csv(StringIO(response.text))
 
         if df.empty:
-            raise Exception("Erro: O CSV está vazio ou não foi lido corretamente.")
+            print("Erro: O CSV está vazio.")
+            return None, None
 
         print(f"Total de linhas no CSV: {len(df)}")
 
         perguntas_docs = []
         respostas_docs = []
         for _, row in df.iterrows():
-            if pd.notna(row["Pergunta"]) and pd.notna(row["Resposta"]):
+            if pd.notna(row.get("Pergunta")) and pd.notna(row.get("Resposta")):
                 perguntas_docs.append(Document(
                     page_content=row["Pergunta"],
                     metadata={"resposta": row["Resposta"]}
                 ))
-                respostas_docs.append(Document(
-                    page_content=row["Resposta"]
-                ))
+                respostas_docs.append(Document(page_content=row["Resposta"]))
 
         if not perguntas_docs or not respostas_docs:
-            raise Exception("Erro: Nenhuma pergunta ou resposta válida foi carregada do CSV.")
+            print("Erro: Nenhuma pergunta ou resposta válida foi carregada.")
+            return None, None
 
         print(f"Total de perguntas carregadas: {len(perguntas_docs)}")
         print(f"Total de respostas carregadas: {len(respostas_docs)}")
@@ -49,7 +49,6 @@ def carregar_dados(google_sheets_csv_url):
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
 
-        # Inicializando os bancos de dados FAISS
         db_perguntas = FAISS.from_documents(perguntas_docs, embeddings) if perguntas_docs else None
         db_respostas = FAISS.from_documents(respostas_docs, embeddings) if respostas_docs else None
 
@@ -57,7 +56,7 @@ def carregar_dados(google_sheets_csv_url):
 
     except Exception as e:
         print(f"Erro ao carregar o CSV: {e}")
-        return None, None  # Retorna None para evitar NameError
+        return None, None
 
     
 def calcular_similaridade(pergunta, perguntas_banco):
