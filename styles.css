@@ -1,4 +1,4 @@
-/* Fundo geral */
+/* Fundo geral */ 
 body {
     background-color: #0F0021;
 }
@@ -13,7 +13,6 @@ h1 {
 .stTextInput > div > div > input {
     color: white !important;
     font-size: 16px !important;
-    padding: 12px !important; /* Ajusta o padding do campo de entrada */
 }
 .stTextInput > label {
     color: #EEFFFC !important;
@@ -27,10 +26,8 @@ h1 {
     font-size: 16px !important;
     padding: 8px 16px !important;
     border-radius: 8px !important;
-    height: 100%; /* Faz com que o botão tenha a mesma altura do campo de entrada */
+    width: 100%;
 }
-
-/* Botão hover */
 .stButton > button:hover {
     background-color: #aacbde !important;
 }
@@ -55,52 +52,25 @@ h1 {
 
 /* Responsividade: botão "Enviar" fica abaixo e centralizado no celular */
 @media (max-width: 768px) {
-    /* Formulário em coluna no mobile */
-    .stForm {
+    .form-container {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: center; /* Centraliza os itens na horizontal */
         gap: 10px;
     }
 
-    .stButton > button {
-        width: 100%; /* Faz o botão ocupar toda a largura no mobile */
-        align-self: center; /* Centraliza o botão */
-    }
-
-    .stTextInput > div {
-        width: 100%; /* Garante que o campo de texto ocupe toda a largura */
+    .form-container button {
+        align-self: center; /* Garante que o botão fique centralizado */
     }
 }
 
-/* Para telas maiores que 768px, o botão fica ao lado do campo de entrada */
 @media (min-width: 769px) {
-    .stForm {
+    .form-container {
         display: flex;
-        flex-direction: row; /* Exibe o botão ao lado do campo de entrada */
-        align-items: center; /* Alinha os itens ao centro */
-        gap: 10px; /* Espaçamento entre o campo e o botão */
-    }
-
-    /* Coluna 1 (campo de entrada) agora ocupa 80% da largura, a coluna 2 (botão) ocupa 20% */
-    .stColumns .stColumn:nth-child(1) {
-        flex: 8; /* A primeira coluna ocupa mais espaço */
-    }
-
-    .stColumns .stColumn:nth-child(2) {
-        flex: 2; /* A segunda coluna ocupa menos espaço, para o botão */
-    }
-
-    .stButton > button {
-        width: auto; /* O botão terá tamanho adequado ao seu conteúdo */
-        height: 100%; /* Garante que o botão tenha a mesma altura que o campo */
-    }
-
-    .stTextInput > div {
-        width: 100%; /* Garante que o campo de texto ocupe toda a largura */
+        flex-direction: row;
+        align-items: center;
     }
 }
-
 /* Aviso abaixo do campo de pergunta */
 .aviso {
     text-align: center;
