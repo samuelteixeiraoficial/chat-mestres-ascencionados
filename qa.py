@@ -27,6 +27,7 @@ def carregar_template_cached():
 # Carregar os dados
 db_perguntas, db_respostas = carregar_dados_cached()
 
+
 # Carregar o template
 template = carregar_template_cached()
 
@@ -66,6 +67,11 @@ try:
     print(f"Quantidade de respostas no banco: {len(db_respostas.docstore._dict)}")
 except Exception as e:
     raise Exception(f"Erro ao acessar o banco de dados: {str(e)}")
+
+
+print("Testando carregamento do banco de dados...")
+print(f"db_perguntas: {db_perguntas}")
+print(f"db_respostas: {db_respostas}")
 
 
 if enviar and pergunta.strip():

@@ -48,13 +48,16 @@ def carregar_dados(google_sheets_csv_url):
         embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
-        db_perguntas = FAISS.from_documents(perguntas_docs, embeddings)
-        db_respostas = FAISS.from_documents(respostas_docs, embeddings)
+
+        # Inicializando os bancos de dados FAISS
+        db_perguntas = FAISS.from_documents(perguntas_docs, embeddings) if perguntas_docs else None
+        db_respostas = FAISS.from_documents(respostas_docs, embeddings) if respostas_docs else None
 
         return db_perguntas, db_respostas
 
     except Exception as e:
-        raise Exception(f"Erro ao carregar o CSV: {e}")
+        print(f"Erro ao carregar o CSV: {e}")
+        return None, None  # Retorna None para evitar NameError
 
     
 def calcular_similaridade(pergunta, perguntas_banco):
