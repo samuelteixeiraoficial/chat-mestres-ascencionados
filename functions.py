@@ -67,6 +67,10 @@ def carregar_template(template_path):
     except Exception as e:
         raise Exception(f"Erro ao carregar o template: {e}")
 
+if db_perguntas is None or db_respostas is None:
+    raise Exception("Erro: O banco de dados não foi carregado corretamente.")
+
+
 def processar_pergunta(pergunta, db_perguntas, db_respostas, template, api_key):
     try:
         # Obtém todas as perguntas do banco

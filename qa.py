@@ -60,8 +60,12 @@ with st.form(key='pergunta_form'):
         enviar = st.form_submit_button(" ⬆️ ")
         st.markdown("</div>", unsafe_allow_html=True)
 
-print(f"Quantidade de perguntas no banco: {len(db_perguntas.docstore._dict)}")
-print(f"Quantidade de respostas no banco: {len(db_respostas.docstore._dict)}")
+print("Testando db_perguntas e db_respostas...")
+try:
+    print(f"Quantidade de perguntas no banco: {len(db_perguntas.docstore._dict)}")
+    print(f"Quantidade de respostas no banco: {len(db_respostas.docstore._dict)}")
+except Exception as e:
+    raise Exception(f"Erro ao acessar o banco de dados: {str(e)}")
 
 
 if enviar and pergunta.strip():
