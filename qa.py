@@ -13,7 +13,6 @@ google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8C
 with open("styles.css", "r") as file:
     st.markdown(f"<style>{file.read()}</style>", unsafe_allow_html=True)
 
-
 # Carregar dados com cache
 @st.cache_resource
 def carregar_dados_cached():
@@ -65,13 +64,13 @@ with st.form(key='pergunta_form'):
 
 # Processar a pergunta quando enviada
 if enviar and pergunta.strip():
-    st.session_state.input_pergunta = ""  # Reseta o campo de entrada antes de processar
+    # Aqui, processamos a pergunta antes de limpar o campo
     with st.spinner("Digitando..."):
         resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
 
         if resposta:
             st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-            st.rerun()  # Recarregar a aplicação para limpar o estado do formulário
+            st.experimental_rerun()  # Recarregar a aplicação para limpar o estado do formulário
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
