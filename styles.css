@@ -58,11 +58,11 @@ h1 {
         align-items: center; /* Centraliza os itens na horizontal */
         justify-content: center; /* Centraliza os itens na vertical */
         gap: 10px;
-        height: 100vh; /* Garante que a altura do formulário ocupe toda a tela */
     }
 
     .form-container button {
         align-self: center; /* Garante que o botão fique centralizado horizontalmente */
+        margin-top: 20px; /* Espaçamento entre o campo de texto e o botão */
     }
 }
 
