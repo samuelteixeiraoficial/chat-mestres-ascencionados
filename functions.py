@@ -10,6 +10,32 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from difflib import SequenceMatcher
+from nltk.corpus import stopwords
+import nltk
+
+# Baixando as stopwords em português, se necessário
+nltk.download('stopwords')
+
+# Carregar as stopwords em português
+stop_words_pt = stopwords.words('portuguese')
+
+# Agora, crie o TfidfVectorizer com as stopwords em português
+vectorizer = TfidfVectorizer(stop_words=stop_words_pt)
+
+def calcular_similaridade(pergunta, perguntas_banco):
+    """
+    Calcula a similaridade entre a pergunta do usuário e as perguntas do banco de dados.
+    Retorna o índice da pergunta mais similar e o valor da similaridade.
+    """
+    todas_perguntas = perguntas_banco + [pergunta]  # Adiciona a pergunta do usuário
+
+    tfidf_matrix = vectorizer.fit_transform(todas_perguntas)  # Vetoriza as perguntas
+    similaridade = cosine_similarity(tfidf_matrix[-1], tfidf_matrix[:-1])  # Similaridade com as perguntas do banco
+
+    indice_max = np.argmax(similaridade)  # Índice da pergunta mais similar
+    similaridade_max = similaridade[0][indice_max]  # Valor da maior similaridade
+    
+    return indice_max, similaridade_max
 
 
 # Função para carregar dados do Google Sheets
@@ -57,23 +83,6 @@ def carregar_dados(google_sheets_csv_url):
     except Exception as e:
         print(f"Erro ao carregar o CSV: {e}")
         return None, None
-
-
-def calcular_similaridade(pergunta, perguntas_banco):
-    """
-    Calcula a similaridade entre a pergunta do usuário e as perguntas do banco de dados.
-    Retorna o índice da pergunta mais similar e o valor da similaridade.
-    """
-    vectorizer = TfidfVectorizer(stop_words='portuguese')
-    todas_perguntas = perguntas_banco + [pergunta]  # Adiciona a pergunta do usuário
-
-    tfidf_matrix = vectorizer.fit_transform(todas_perguntas)  # Vetoriza as perguntas
-    similaridade = cosine_similarity(tfidf_matrix[-1], tfidf_matrix[:-1])  # Similaridade com as perguntas do banco
-
-    indice_max = np.argmax(similaridade)  # Índice da pergunta mais similar
-    similaridade_max = similaridade[0][indice_max]  # Valor da maior similaridade
-
-    return indice_max, similaridade_max
 
 
 # Função para carregar o template
