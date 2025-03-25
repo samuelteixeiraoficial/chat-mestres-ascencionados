@@ -70,7 +70,7 @@ if enviar and pergunta.strip():
 
         if resposta:
             st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-            st.experimental_rerun()  # Recarregar a aplicação para limpar o estado do formulário
+            st.rerun()  # Rerun mais eficiente
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
