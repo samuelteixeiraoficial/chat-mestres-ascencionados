@@ -15,9 +15,17 @@ from difflib import SequenceMatcher
 # Função para carregar dados do Google Sheets
 def carregar_dados(google_sheets_csv_url):
     try:
+        print("Baixando CSV...")
         response = requests.get(google_sheets_csv_url)
         response.raise_for_status()
+        print("CSV baixado com sucesso.")
+
         df = pd.read_csv(StringIO(response.text))
+
+        if df.empty:
+            raise Exception("Erro: O CSV está vazio ou não foi lido corretamente.")
+
+        print(f"Total de linhas no CSV: {len(df)}")
 
         perguntas_docs = []
         respostas_docs = []
@@ -30,17 +38,24 @@ def carregar_dados(google_sheets_csv_url):
                 respostas_docs.append(Document(
                     page_content=row["Resposta"]
                 ))
-        
+
+        if not perguntas_docs or not respostas_docs:
+            raise Exception("Erro: Nenhuma pergunta ou resposta válida foi carregada do CSV.")
+
+        print(f"Total de perguntas carregadas: {len(perguntas_docs)}")
+        print(f"Total de respostas carregadas: {len(respostas_docs)}")
+
         embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
         db_perguntas = FAISS.from_documents(perguntas_docs, embeddings)
         db_respostas = FAISS.from_documents(respostas_docs, embeddings)
-        
+
         return db_perguntas, db_respostas
-        
+
     except Exception as e:
         raise Exception(f"Erro ao carregar o CSV: {e}")
+
     
 def calcular_similaridade(pergunta, perguntas_banco):
     """
