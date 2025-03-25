@@ -63,26 +63,15 @@ with st.form(key='pergunta_form'):
         enviar = st.form_submit_button(" ⬆️ ")
         st.markdown("</div>", unsafe_allow_html=True)
 
-# Exibe os dados carregados
-st.write("Testando db_perguntas e db_respostas...")
-try:
-    st.write(f"Quantidade de perguntas no banco: {len(db_perguntas.docstore._dict)}")
-    st.write(f"Quantidade de respostas no banco: {len(db_respostas.docstore._dict)}")
-except Exception as e:
-    st.error(f"Erro ao acessar o banco de dados: {str(e)}")
-
-# Processamento da pergunta
+# Processar a pergunta quando enviada
 if enviar and pergunta.strip():
+    st.session_state.input_pergunta = ""  # Reseta o campo de entrada antes de processar
     with st.spinner("Digitando..."):
-        try:
-            resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
-            
-            if resposta:
-                st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                st.session_state.input_pergunta = ""  # Reseta o campo de entrada
-                st.rerun()
-        except Exception as e:
-            st.error(f"Erro ao processar a pergunta: {str(e)}")
+        resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
+
+        if resposta:
+            st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+            st.rerun()  # Recarregar a aplicação para limpar o estado do formulário
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
