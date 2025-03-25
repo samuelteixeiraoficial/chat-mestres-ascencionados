@@ -27,7 +27,7 @@ h1 {
     font-size: 16px !important;
     padding: 8px 16px !important;
     border-radius: 8px !important;
-    height: 100%; /* Faz com que o botão tenha a mesma altura do campo de entrada */
+    height: 70%; /* Faz com que o botão tenha a mesma altura do campo de entrada */
 }
 
 /* Botão hover */
@@ -84,7 +84,7 @@ h1 {
 
     .stButton > button {
         width: auto; /* O botão terá tamanho adequado ao seu conteúdo */
-        height: 100%; /* Garante que o botão tenha a mesma altura que o campo */
+        height: 70%; /* Garante que o botão tenha a mesma altura que o campo */
     }
 
     .stTextInput > div {
