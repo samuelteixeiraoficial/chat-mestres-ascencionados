@@ -60,12 +60,15 @@ with st.form(key='pergunta_form'):
         enviar = st.form_submit_button(" ⬆️ ")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    if enviar and pergunta.strip():
-        with st.spinner("Digitando..."):
-            resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
-            if resposta:
-                st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                st.rerun()  # Rerun mais eficiente
+if enviar and pergunta.strip():
+    with st.spinner("Digitando..."):
+        resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
+
+        if resposta:
+            st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+            st.session_state.input_pergunta = ""  # Reseta o campo de entrada
+            st.rerun()
+
 
 # Adiciona o aviso abaixo do campo de pergunta
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
