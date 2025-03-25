@@ -42,7 +42,7 @@ def carregar_dados(google_sheets_csv_url):
     except Exception as e:
         raise Exception(f"Erro ao carregar o CSV: {e}")
     
-    def calcular_similaridade(pergunta, perguntas_banco):
+def calcular_similaridade(pergunta, perguntas_banco):
     """
     Calcula a similaridade entre a pergunta do usuário e as perguntas do banco de dados.
     Retorna o índice da pergunta mais similar e o valor da similaridade.
