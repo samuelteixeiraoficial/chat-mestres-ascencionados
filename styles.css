@@ -13,6 +13,7 @@ h1 {
 .stTextInput > div > div > input {
     color: white !important;
     font-size: 16px !important;
+    padding: 12px !important; /* Ajusta o padding do campo de entrada */
 }
 .stTextInput > label {
     color: #EEFFFC !important;
@@ -26,6 +27,7 @@ h1 {
     font-size: 16px !important;
     padding: 8px 16px !important;
     border-radius: 8px !important;
+    height: 100%; /* Faz com que o botão tenha a mesma altura do campo de entrada */
 }
 
 /* Botão hover */
@@ -51,12 +53,13 @@ h1 {
     text-align: left;
 }
 
-/* Responsividade para dispositivos móveis: botão "Enviar" abaixo e centralizado */
+/* Responsividade: botão "Enviar" fica abaixo e centralizado no celular */
 @media (max-width: 768px) {
-    .form-container {
+    /* Formulário em coluna no mobile */
+    .stForm {
         display: flex;
         flex-direction: column;
-        align-items: center; /* Centraliza os itens na horizontal */
+        align-items: center;
         gap: 10px;
     }
 
@@ -64,11 +67,15 @@ h1 {
         width: 100%; /* Faz o botão ocupar toda a largura no mobile */
         align-self: center; /* Centraliza o botão */
     }
+
+    .stTextInput > div {
+        width: 100%; /* Garante que o campo de texto ocupe toda a largura */
+    }
 }
 
 /* Para telas maiores que 768px, o botão fica ao lado do campo de entrada */
 @media (min-width: 769px) {
-    .form-container {
+    .stForm {
         display: flex;
         flex-direction: row; /* Exibe o botão ao lado do campo de entrada */
         align-items: center; /* Alinha os itens ao centro */
@@ -77,6 +84,11 @@ h1 {
 
     .stButton > button {
         width: auto; /* O botão terá tamanho adequado ao seu conteúdo */
+        height: 100%; /* Garante que o botão tenha a mesma altura que o campo */
+    }
+
+    .stTextInput > div {
+        width: 100%; /* Garante que o campo de texto ocupe toda a largura */
     }
 }
 

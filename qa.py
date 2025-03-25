@@ -60,6 +60,7 @@ with st.form(key='pergunta_form'):
     with col2:
         enviar = st.form_submit_button(" ⬆️ ")
 
+
     # Adicionando o contêiner do formulário
     st.markdown("<div class='form-container'>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
