@@ -58,7 +58,7 @@ def carregar_dados(google_sheets_csv_url):
         print(f"Erro ao carregar o CSV: {e}")
         return None, None
 
-    
+
 def calcular_similaridade(pergunta, perguntas_banco):
     """
     Calcula a similaridade entre a pergunta do usuário e as perguntas do banco de dados.
@@ -72,7 +72,7 @@ def calcular_similaridade(pergunta, perguntas_banco):
 
     indice_max = np.argmax(similaridade)  # Índice da pergunta mais similar
     similaridade_max = similaridade[0][indice_max]  # Valor da maior similaridade
-    
+
     return indice_max, similaridade_max
 
 
@@ -84,21 +84,23 @@ def carregar_template(template_path):
     except Exception as e:
         raise Exception(f"Erro ao carregar o template: {e}")
 
-if db_perguntas is None or db_respostas is None:
-    raise Exception("Erro: O banco de dados não foi carregado corretamente.")
+
+def verificar_dados(db_perguntas, db_respostas):
+    if db_perguntas is None or db_respostas is None:
+        raise Exception("Erro: O banco de dados não foi carregado corretamente.")
 
 
 def processar_pergunta(pergunta, db_perguntas, db_respostas, template, api_key):
     try:
         # Obtém todas as perguntas do banco
         perguntas_lista = [doc.page_content for doc in db_perguntas.similarity_search("", k=100)]  # Pega até 100 perguntas armazenadas
-        
+
         # Calcula a similaridade da pergunta do usuário com as do banco
         indice_similar, similaridade_pergunta = calcular_similaridade(pergunta, perguntas_lista)
 
         if similaridade_pergunta >= 0.70:  # Se for ≥ 70% similar
             resposta_banco = db_respostas.similarity_search(perguntas_lista[indice_similar], k=1)[0].page_content
-            
+
             # Verifica a similaridade da resposta gerada
             similaridade_resposta = SequenceMatcher(None, resposta_banco, template).ratio()
 
@@ -106,17 +108,17 @@ def processar_pergunta(pergunta, db_perguntas, db_respostas, template, api_key):
                 resposta_final = f"{resposta_banco} (Baseado no conhecimento registrado)"
             else:
                 resposta_final = resposta_banco
-        
+
         else:
             # Fluxo normal se não for similar a nenhuma pergunta no banco
             similar_perguntas = db_perguntas.similarity_search_with_score(pergunta, k=4)
             usar_respostas = all(score < 0.2 for _, score in similar_perguntas)
-            
+
             if usar_respostas:
                 contextos = [doc.page_content for doc in db_respostas.similarity_search(pergunta, k=7)]
             else:
                 contextos = [doc.metadata["resposta"] for doc, _ in similar_perguntas]
-            
+
             prompt = PromptTemplate(
                 template=template,
                 input_variables=["contexto", "pergunta"]
@@ -124,7 +126,7 @@ def processar_pergunta(pergunta, db_perguntas, db_respostas, template, api_key):
                 contexto="\n".join(contextos),
                 pergunta=pergunta
             )
-            
+
             headers = {"Authorization": f"Bearer {api_key}"}
             data = {
                 "model": "deepseek-chat",
@@ -133,17 +135,16 @@ def processar_pergunta(pergunta, db_perguntas, db_respostas, template, api_key):
                 "temperature": 0.5,
                 "language": "pt-BR"
             }
-            
+
             resposta = requests.post(
                 "https://api.deepseek.com/chat/completions",
                 headers=headers,
                 json=data
             ).json()
-            
+
             resposta_final = resposta["choices"][0]["message"]["content"]
 
         return resposta_final
 
     except Exception as e:
         raise Exception(f"Erro no processamento: {str(e)}")
-
