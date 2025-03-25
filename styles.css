@@ -27,7 +27,7 @@ h1 {
     font-size: 16px !important;
     padding: 8px 16px !important;
     border-radius: 8px !important;
-    height: 10%; /* Faz com que o botão tenha a mesma altura do campo de entrada */
+    height: 100%; /* Faz com que o botão tenha a mesma altura do campo de entrada */
 }
 
 /* Botão hover */
@@ -82,9 +82,18 @@ h1 {
         gap: 10px; /* Espaçamento entre o campo e o botão */
     }
 
+    /* Coluna 1 (campo de entrada) agora ocupa 70% da largura, a coluna 2 (botão) ocupa 30% */
+    .stColumns .stColumn:nth-child(1) {
+        flex: 7; /* A primeira coluna ocupa mais espaço */
+    }
+
+    .stColumns .stColumn:nth-child(2) {
+        flex: 3; /* A segunda coluna ocupa menos espaço, para o botão */
+    }
+
     .stButton > button {
         width: auto; /* O botão terá tamanho adequado ao seu conteúdo */
-        height: 10%; /* Garante que o botão tenha a mesma altura que o campo */
+        height: 100%; /* Garante que o botão tenha a mesma altura que o campo */
     }
 
     .stTextInput > div {
