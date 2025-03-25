@@ -82,13 +82,13 @@ h1 {
         gap: 10px; /* Espaçamento entre o campo e o botão */
     }
 
-    /* Coluna 1 (campo de entrada) agora ocupa 70% da largura, a coluna 2 (botão) ocupa 30% */
+    /* Coluna 1 (campo de entrada) agora ocupa 80% da largura, a coluna 2 (botão) ocupa 20% */
     .stColumns .stColumn:nth-child(1) {
-        flex: 7; /* A primeira coluna ocupa mais espaço */
+        flex: 8; /* A primeira coluna ocupa mais espaço */
     }
 
     .stColumns .stColumn:nth-child(2) {
-        flex: 3; /* A segunda coluna ocupa menos espaço, para o botão */
+        flex: 2; /* A segunda coluna ocupa menos espaço, para o botão */
     }
 
     .stButton > button {
