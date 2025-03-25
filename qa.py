@@ -60,6 +60,10 @@ with st.form(key='pergunta_form'):
         enviar = st.form_submit_button(" ⬆️ ")
         st.markdown("</div>", unsafe_allow_html=True)
 
+print(f"Quantidade de perguntas no banco: {len(db_perguntas.docstore._dict)}")
+print(f"Quantidade de respostas no banco: {len(db_respostas.docstore._dict)}")
+
+
 if enviar and pergunta.strip():
     with st.spinner("Digitando..."):
         resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
