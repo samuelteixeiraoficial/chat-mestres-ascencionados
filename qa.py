@@ -50,7 +50,7 @@ for mensagem in st.session_state.historico:
 with st.form(key='pergunta_form'):
     st.markdown('<div class="form-container">', unsafe_allow_html=True)  # Inicia o contêiner com a classe
 
-    col1, col2 = st.columns([5, 1])
+    col1, col2 = st.columns([5, 1])  # Definindo duas colunas para o input de texto e o botão
     
     with col1:
         pergunta = st.text_input(
@@ -60,9 +60,8 @@ with st.form(key='pergunta_form'):
         )
     
     with col2:
-        st.markdown("<div style='display: flex; align-items: center; height: 100%;'>", unsafe_allow_html=True)
+        # Inserir o botão dentro da coluna de maneira simples
         enviar = st.form_submit_button(" ⬆️ ")
-        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)  # Fecha o contêiner com a classe
 
