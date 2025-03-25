@@ -55,14 +55,13 @@ h1 {
     .form-container {
         display: flex;
         flex-direction: column;
-        align-items: center; /* Centraliza os itens na horizontal */
-        justify-content: center; /* Centraliza os itens na vertical */
+        justify-content: center; /* Centraliza verticalmente */
+        align-items: center; /* Centraliza horizontalmente */
         gap: 10px;
-        height: 100vh; /* Garante que a altura do formulário ocupe toda a tela */
     }
 
     .form-container button {
-        width: 100%; /* Faz o botão ocupar toda a largura disponível */
+        width: 80%; /* Ajusta a largura do botão no celular */
         margin-top: 20px; /* Espaçamento entre o campo de texto e o botão */
     }
 }
@@ -74,6 +73,7 @@ h1 {
         align-items: center;
     }
 }
+
 
 /* Aviso abaixo do campo de pergunta */
 .aviso {
