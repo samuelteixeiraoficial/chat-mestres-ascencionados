@@ -1,72 +1,112 @@
-/* Fundo geral */ 
-body {
-    background-color: #0F0021;
+/* Tema escuro (padrão) */
+:root {
+    --bg-color: #0F0021;
+    --text-color: white;
+    --input-text-color: white;
+    --input-label-color: #EEFFFC;
+    --button-bg: #cce7ee;
+    --button-text: black;
+    --button-hover: #aacbde;
+    --message-bg: rgba(255, 255, 255, 0.1);
+    --question-color: #cce7ee;
+    --answer-color: #EEFFFC;
+    --notice-color: #cce7ee;
 }
 
-/* Centraliza o título */
+/* Tema claro (quando o navegador está em modo claro) */
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg-color: #f5f7fa;
+        --text-color: #2A255E;
+        --input-text-color: #3D348B;
+        --input-label-color: #3D348B;
+        --button-bg: #3D348B;
+        --button-text: white;
+        --button-hover: #2A255E;
+        --message-bg: rgba(61, 52, 139, 0.1);
+        --question-color: #3D348B;
+        --answer-color: #2A255E;
+        --notice-color: #3D348B;
+    }
+}
+
+/* Aplicação das variáveis CSS */
+body {
+    background-color: var(--bg-color);
+}
+
 h1 {
     text-align: center;
-    color: white;
+    color: var(--text-color);
 }
 
-/* Personalização do campo de entrada */
 .stTextInput > div > div > input {
-    color: white !important;
+    color: var(--input-text-color) !important;
     font-size: 16px !important;
 }
+
 .stTextInput > label {
-    color: #EEFFFC !important;
+    color: var(--input-label-color) !important;
 }
 
-/* Estilização do botão */
 .stButton > button {
-    background-color: #cce7ee !important;
-    color: black !important;
+    background-color: var(--button-bg) !important;
+    color: var(--button-text) !important;
     border: none !important;
     font-size: 16px !important;
     padding: 8px 16px !important;
     border-radius: 8px !important;
     width: 100%;
 }
+
 .stButton > button:hover {
-    background-color: #aacbde !important;
+    background-color: var(--button-hover) !important;
 }
 
-/* Estilos do chat */
 .mensagem-box {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--message-bg);
     padding: 15px;
     border-radius: 10px;
     font-size: 16px;
     margin: 10px 0;
 }
+
 .pergunta-box {
-    color: #cce7ee;
+    color: var(--question-color);
     font-weight: bold;
     text-align: right;
 }
+
 .resposta-box {
-    color: #EEFFFC;
+    color: var(--answer-color);
     text-align: left;
 }
 
-/* Responsividade: botão "Enviar" fica ao lado do campo no celular */
+.aviso {
+    text-align: center;
+    font-size: 8px;
+    color: var(--notice-color);
+    margin-top: 5px;
+    opacity: 0.7;
+}
+
+/* Responsividade mantida igual */
 @media (max-width: 768px) {
     .form-container {
         display: flex;
-        flex-direction: row; /* Faz com que o botão fique ao lado do campo de entrada */
-        justify-content: center; /* Centraliza os itens horizontalmente */
-        align-items: center; /* Alinha os itens verticalmente no centro */
-        width: 100%; /* Garante que ocupe toda a largura da tela */
-        gap: 10px; /* Espaçamento entre o campo e o botão */
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        gap: 10px;
     }
 
     .form-container input {
-        width: 80%; /* Ajusta o tamanho do campo de texto */
+        width: 80%;
     }
 
     .form-container button {
-        width: 20%; /* Ajusta o tamanho do botão */
+        width: 20%;
     }
 }
 
@@ -76,15 +116,4 @@ h1 {
         flex-direction: row;
         align-items: center;
     }
-}
-
-
-
-/* Aviso abaixo do campo de pergunta */
-.aviso {
-    text-align: center;
-    font-size: 8px;
-    color: #cce7ee;
-    margin-top: 5px;
-    opacity: 0.7;
 }
