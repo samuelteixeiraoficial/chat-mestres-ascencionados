@@ -42,6 +42,9 @@ def carregar_dados_cached():
             
         return carregar_dados(google_sheets_csv_url)
     except Exception as e:
+        st.error("Erro ao carregar os dados.")
+        st.exception(e)  # mostra o erro completo
+        st.stop()
         logger.error(f"ERRO no carregamento: {str(e)}", exc_info=True)
         raise
 
