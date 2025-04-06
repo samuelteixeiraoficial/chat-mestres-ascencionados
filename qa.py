@@ -76,7 +76,7 @@ except Exception as e:
     st.stop()
 
 # DEBUG: Verificação completa (remova depois)
-with st.expander("🔍 Debug Info", expanded=False):
+with st.expander("🔍 Debug Info", expanded=True):
     st.subheader("Teste de Requisição")
     try:
         test_req = requests.get(google_sheets_csv_url, timeout=10)
