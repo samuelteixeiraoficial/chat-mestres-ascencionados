@@ -2,6 +2,9 @@ import streamlit as st
 from dotenv import load_dotenv
 from functions import carregar_dados, carregar_template, processar_pergunta, verificar_dados
 import os
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Carrega as variáveis de ambiente
 load_dotenv()
@@ -25,6 +28,18 @@ def carregar_template_cached():
 
 # Carregar os dados
 db_perguntas, db_respostas = carregar_dados_cached()
+
+try:
+    logger.info("Iniciando carregamento de dados...")
+    db_perguntas, db_respostas = carregar_dados_cached()
+    logger.info(f"Tipo db_perguntas: {type(db_perguntas)}")
+    logger.info(f"Tipo db_respostas: {type(db_respostas)}")
+    verificar_dados(db_perguntas, db_respostas)
+    logger.info("Dados verificados com sucesso!")
+except Exception as e:
+    logger.error(f"Erro ao carregar dados: {str(e)}", exc_info=True)
+    st.error("Erro ao carregar os dados. Por favor, tente recarregar a página.")
+    st.stop()
 
 # Verificar se os dados foram carregados corretamente
 verificar_dados(db_perguntas, db_respostas)
