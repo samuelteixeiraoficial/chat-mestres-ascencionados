@@ -156,4 +156,6 @@ def processar_pergunta(pergunta, db_perguntas, db_respostas, template, api_key):
         return resposta_final
 
     except Exception as e:
-        raise Exception(f"Erro no processamento: {str(e)}")
+            import traceback
+    traceback.print_exc()
+    raise
