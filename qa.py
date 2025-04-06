@@ -3,6 +3,10 @@ from dotenv import load_dotenv
 from functions import carregar_dados, carregar_template, processar_pergunta, verificar_dados
 import os
 import logging
+import requests
+import pandas as pd
+import sys
+from io import StringIO
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO)
@@ -18,10 +22,27 @@ google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8C
 with open("styles.css", "r") as file:
     st.markdown(f"<style>{file.read()}</style>", unsafe_allow_html=True)
 
-# Carregar dados com cache (com timeout aumentado)
-@st.cache_resource(ttl=3600)  # Cache por 1 hora
+# Carregar dados com cache (com timeout aumentado e headers)
+@st.cache_resource(ttl=3600)
 def carregar_dados_cached():
-    return carregar_dados(google_sheets_csv_url)
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Accept-Encoding": "gzip"
+        }
+        logger.info("Iniciando download do CSV...")
+        response = requests.get(google_sheets_csv_url, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        df = pd.read_csv(StringIO(response.text))
+        if df.empty:
+            logger.error("DataFrame vazio!")
+            return None, None
+            
+        return carregar_dados(google_sheets_csv_url)
+    except Exception as e:
+        logger.error(f"ERRO no carregamento: {str(e)}", exc_info=True)
+        raise
 
 # Carregar template com cache
 @st.cache_data
@@ -33,9 +54,6 @@ try:
     logger.info("Iniciando carregamento de dados...")
     with st.spinner('Carregando base de conhecimento... (pode demorar alguns segundos)'):
         db_perguntas, db_respostas = carregar_dados_cached()
-        
-    logger.info(f"Tipo db_perguntas: {type(db_perguntas)}")
-    logger.info(f"Tipo db_respostas: {type(db_respostas)}")
     
     verificar_dados(db_perguntas, db_respostas)
     logger.info("Dados verificados com sucesso!")
@@ -83,7 +101,7 @@ st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 if 'historico' not in st.session_state:
     st.session_state.historico = []
 
-# Exibir histórico de perguntas e respostas no formato de chat
+# Exibir histórico de perguntas e respostas
 for mensagem in st.session_state.historico:
     pergunta, resposta = mensagem["pergunta"], mensagem["resposta"]
     st.markdown(f"""
@@ -93,34 +111,28 @@ for mensagem in st.session_state.historico:
 
 # Formulário de entrada
 with st.form(key='pergunta_form'):
-    st.markdown('<div class="form-container">', unsafe_allow_html=True)  # Inicia o contêiner com a classe
-
-    col1, col2 = st.columns([5, 1])  # Definindo duas colunas para o input de texto e o botão
+    st.markdown('<div class="form-container">', unsafe_allow_html=True)
     
+    col1, col2 = st.columns([5, 1])
     with col1:
         pergunta = st.text_input(
             "Sua pergunta:",
             placeholder="Escreva sua dúvida aqui...",
             key="input_pergunta"
         )
-    
     with col2:
-        # Inserir o botão dentro da coluna de maneira simples
         enviar = st.form_submit_button(" ⬆️ ")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)  # Fecha o contêiner com a classe
-
-
-# Processar a pergunta quando enviada
+# Processar a pergunta
 if enviar and pergunta.strip():
-    # Aqui, processamos a pergunta antes de limpar o campo
     with st.spinner("Digitando..."):
         resposta = processar_pergunta(pergunta, db_perguntas, db_respostas, template, os.getenv("DEEPSEEK_API_KEY"))
-
         if resposta:
             st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-            st.rerun()  # Rerun mais eficiente
+            st.rerun()
 
-# Adiciona o aviso abaixo do campo de pergunta
+# Rodapé
 st.markdown("<p class='aviso'>Este AI-Chat pode cometer erros. Verifique informações importantes.</p>",
             unsafe_allow_html=True)
