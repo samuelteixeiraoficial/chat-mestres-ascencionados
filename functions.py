@@ -1,18 +1,25 @@
+# 📦 Bibliotecas padrão
+import os
+import logging
+from io import StringIO
+
+# 📥 Requisições HTTP e manipulação de dados
 import requests
 import pandas as pd
-from io import StringIO
+import numpy as np
+
+# 🧠 NLP e similaridade
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from difflib import SequenceMatcher
+import nltk
+from nltk.corpus import stopwords
+
+# 🔗 LangChain e vetores
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.docstore.document import Document
-import os
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
-from difflib import SequenceMatcher
-from nltk.corpus import stopwords
-import nltk
-import logging
 
 logging.basicConfig(level=logging.INFO)
 
@@ -44,38 +51,37 @@ def calcular_similaridade(pergunta, perguntas_banco):
 # Função para carregar dados do Google Sheets
 def carregar_dados(google_sheets_csv_url):
     try:
-        st.info("📥 Baixando CSV do Google Sheets...")
+        print("📥 Baixando CSV...")
         response = requests.get(google_sheets_csv_url)
         response.raise_for_status()
 
-        st.success("✅ CSV baixado com sucesso!")
+        csv_text = response.content.decode("utf-8-sig", errors="replace")
 
-        df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")), sep="\t")
+        # 🔍 Mostrar os primeiros 1000 caracteres do CSV bruto nos logs
+        logging.info("📄 Conteúdo bruto do CSV:\n%s", csv_text[:1000])
 
-        # 👀 Verificações visuais
-        st.subheader("🔍 Primeiras linhas do DataFrame:")
-        st.write(df.head())
+        # Tenta carregar o DataFrame
+        df = pd.read_csv(StringIO(csv_text), sep=None, engine="python")
 
-        st.subheader("📋 Colunas encontradas:")
-        st.write(df.columns.tolist())
+        print("✅ CSV carregado como DataFrame com sucesso!")
+        print("📋 Colunas detectadas:", df.columns.tolist())
+        logging.info("📋 Colunas detectadas: %s", df.columns.tolist())
 
-        logging.info("🔍 Primeiras linhas do DataFrame:\n%s", df.head().to_string())
-        logging.info("📋 Colunas encontradas: %s", df.columns.tolist())
-
-        # 👇 Normalização dos nomes das colunas
+        # Normaliza os nomes das colunas
         def normalizar_nome(col):
             return col.strip().lower()
 
         colunas_norm = {normalizar_nome(col): col for col in df.columns}
+
         if "pergunta" not in colunas_norm or "resposta" not in colunas_norm:
-            st.error("🚫 Colunas 'Pergunta' e/ou 'Resposta' não foram encontradas no CSV.")
-            logging.error("🚫 Colunas esperadas não foram encontradas!")
-            logging.error("📋 Colunas disponíveis: %s", df.columns.tolist())
+            print("🚫 Erro: Colunas 'Pergunta' e/ou 'Resposta' não foram encontradas no CSV.")
+            print("📋 Colunas disponíveis:", df.columns.tolist())
             return None, None
 
         col_pergunta = colunas_norm["pergunta"]
         col_resposta = colunas_norm["resposta"]
 
+        # Cria os documentos
         perguntas_docs = []
         respostas_docs = []
         for _, row in df.iterrows():
@@ -86,26 +92,24 @@ def carregar_dados(google_sheets_csv_url):
                 respostas_docs.append(Document(page_content=resposta))
 
         if not perguntas_docs or not respostas_docs:
-            st.error("Erro: Nenhuma pergunta ou resposta válida foi carregada.")
+            print("⚠️ Erro: Nenhuma pergunta ou resposta válida foi carregada.")
             return None, None
 
-        st.success(f"Total de perguntas carregadas: {len(perguntas_docs)}")
-        st.success(f"Total de respostas carregadas: {len(respostas_docs)}")
+        print(f"📦 Total de perguntas carregadas: {len(perguntas_docs)}")
+        print(f"📦 Total de respostas carregadas: {len(respostas_docs)}")
 
         embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )
 
-        db_perguntas = FAISS.from_documents(perguntas_docs, embeddings) if perguntas_docs else None
-        db_respostas = FAISS.from_documents(respostas_docs, embeddings) if respostas_docs else None
+        db_perguntas = FAISS.from_documents(perguntas_docs, embeddings)
+        db_respostas = FAISS.from_documents(respostas_docs, embeddings)
 
-        logging.info("✅ Dados carregados com sucesso! db_perguntas e db_respostas prontos.")
-
+        print("✅ Dados carregados e bancos vetoriais criados com sucesso!")
         return db_perguntas, db_respostas
 
     except Exception as e:
-        st.error(f"❌ Erro ao carregar os dados: {e}")
-        logging.exception("❌ Erro ao carregar o CSV:")
+        print(f"❌ Erro ao carregar os dados do banco: {e}")
         return None, None
 
 
