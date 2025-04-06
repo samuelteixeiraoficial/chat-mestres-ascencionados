@@ -46,7 +46,7 @@ def carregar_dados(google_sheets_csv_url):
         response.raise_for_status()
 
         print("CSV baixado com sucesso!")
-        df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")), sep="\t")
+        df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")), sep=None, engine="python")
         print("🔍 Primeiras linhas do DataFrame:")
         print(df.head())
         print("📋 Colunas encontradas:", df.columns.tolist())
