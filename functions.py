@@ -48,22 +48,35 @@ def carregar_dados(google_sheets_csv_url):
         print("CSV baixado com sucesso!")
         df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")))
 
-
         if df.empty:
             print("Erro: O CSV está vazio.")
             return None, None
 
         print(f"Total de linhas no CSV: {len(df)}")
+        print("🧠 Colunas detectadas no CSV:", df.columns.tolist())
 
         perguntas_docs = []
         respostas_docs = []
+
+        # 🔽 🔽 AQUI VEM O NOVO CÓDIGO para normalizar os nomes das colunas
+        def normalizar_nome(col):
+            return col.strip().lower()
+
+        colunas_norm = {normalizar_nome(col): col for col in df.columns}
+        if "pergunta" not in colunas_norm or "resposta" not in colunas_norm:
+            print("🚫 Colunas esperadas não foram encontradas!")
+            print("📋 Colunas disponíveis:", df.columns.tolist())
+            return None, None
+
+        col_pergunta = colunas_norm["pergunta"]
+        col_resposta = colunas_norm["resposta"]
+
         for _, row in df.iterrows():
-            if pd.notna(row.get("Pergunta")) and pd.notna(row.get("Resposta")):
-                perguntas_docs.append(Document(
-                    page_content=row["Pergunta"],
-                    metadata={"resposta": row["Resposta"]}
-                ))
-                respostas_docs.append(Document(page_content=row["Resposta"]))
+            pergunta = row[col_pergunta]
+            resposta = row[col_resposta]
+            if pd.notna(pergunta) and pd.notna(resposta):
+                perguntas_docs.append(Document(page_content=pergunta, metadata={"resposta": resposta}))
+                respostas_docs.append(Document(page_content=resposta))
 
         if not perguntas_docs or not respostas_docs:
             print("Erro: Nenhuma pergunta ou resposta válida foi carregada.")
