@@ -100,6 +100,18 @@ with st.expander("🔍 Debug Info", expanded=True):
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
 
+st.markdown("### 🔍 Teste de conexão com Google Sheets")
+
+google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8CgiVZvD37KizSsljT9D7eTd8lA9Aw/export?format=csv"
+
+try:
+    response = requests.get(google_sheets_csv_url, timeout=10)
+    st.success(f"✅ Conexão bem-sucedida! Status: {response.status_code}")
+    st.code(response.text[:500])  # Mostra os primeiros caracteres
+except Exception as e:
+    st.error(f"❌ Falha ao conectar ao Google Sheets.")
+    st.exception(e)
+
 if 'historico' not in st.session_state:
     st.session_state.historico = []
 
