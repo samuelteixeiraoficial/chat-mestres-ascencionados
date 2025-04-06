@@ -25,6 +25,7 @@ with open("styles.css", "r") as file:
 # Carregar dados com cache (com timeout aumentado e headers)
 @st.cache_resource(ttl=3600)
 def carregar_dados_cached():
+    ...
     try:
         headers = {
             "User-Agent": "Mozilla/5.0",
@@ -47,6 +48,7 @@ def carregar_dados_cached():
 # Carregar template com cache
 @st.cache_data
 def carregar_template_cached():
+    ...
     return carregar_template("prompt_template.txt")
 
 # Carregar e verificar os dados COM TRATAMENTO DE ERRO
