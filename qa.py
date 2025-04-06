@@ -61,17 +61,21 @@ with st.form(key='pergunta_form'):
         st.markdown("</div>", unsafe_allow_html=True)
 
     if enviar and pergunta.strip():
-        with st.spinner("Digitando..."):
-            resposta = processar_pergunta(
-                pergunta,
-                db_perguntas,
-                db_respostas,
-                template,
-                os.getenv("DEEPSEEK_API_KEY")
-            )
-            if resposta:
-                st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
-                st.rerun()
+        if db_perguntas is None or db_respostas is None:
+            st.error("Erro ao carregar os dados do banco. Verifique se o CSV contém as colunas 'Pergunta' e 'Resposta' com conteúdo.")
+        else:
+            with st.spinner("Digitando..."):
+                resposta = processar_pergunta(
+                    pergunta,
+                    db_perguntas,
+                    db_respostas,
+                    template,
+                    os.getenv("DEEPSEEK_API_KEY")
+                )
+                if resposta:
+                    st.session_state.historico.append({"pergunta": pergunta, "resposta": resposta})
+                    st.rerun()
+
 
 # Aviso de responsabilidade
 st.markdown(

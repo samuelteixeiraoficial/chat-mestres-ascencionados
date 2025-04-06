@@ -78,7 +78,11 @@ def carregar_dados(google_sheets_csv_url):
         db_perguntas = FAISS.from_documents(perguntas_docs, embeddings) if perguntas_docs else None
         db_respostas = FAISS.from_documents(respostas_docs, embeddings) if respostas_docs else None
 
+        print("✅ Dados carregados com sucesso! db_perguntas e db_respostas não são None.")
+
+
         return db_perguntas, db_respostas
+    
 
     except Exception as e:
         print(f"Erro ao carregar o CSV: {e}")
