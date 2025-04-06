@@ -47,6 +47,10 @@ def carregar_dados(google_sheets_csv_url):
 
         print("CSV baixado com sucesso!")
         df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")), sep="\t")
+        print("🔍 Primeiras linhas do DataFrame:")
+        print(df.head())
+        print("📋 Colunas encontradas:", df.columns.tolist())
+
 
         if df.empty:
             print("Erro: O CSV está vazio.")
