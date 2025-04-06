@@ -12,6 +12,9 @@ import numpy as np
 from difflib import SequenceMatcher
 from nltk.corpus import stopwords
 import nltk
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Baixando as stopwords em português, se necessário
 nltk.download('stopwords')
@@ -41,82 +44,45 @@ def calcular_similaridade(pergunta, perguntas_banco):
 # Função para carregar dados do Google Sheets
 def carregar_dados(google_sheets_csv_url):
     try:
-        print("Baixando CSV...")
+        st.info("📥 Baixando CSV do Google Sheets...")
         response = requests.get(google_sheets_csv_url)
         response.raise_for_status()
 
-        print("CSV baixado com sucesso!")
-        df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")), sep=None, engine="python")
+        st.success("✅ CSV baixado com sucesso!")
 
-        # 👇 Adicione aqui:
-        print("🔍 Primeiras linhas do DataFrame:")
-        print(df.head())
-        print("📋 Colunas encontradas:", df.columns.tolist())
+        # Tenta carregar o CSV
+        df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")), sep="\t")
 
-        # 👇 Normalização e verificação das colunas
+        # Mostra no app
+        st.subheader("🔍 Primeiras linhas do DataFrame:")
+        st.write(df.head())
+
+        st.subheader("📋 Colunas encontradas:")
+        st.write(df.columns.tolist())
+
+        # Mostra nos logs
+        logging.info("🔍 Primeiras linhas do DataFrame:\n%s", df.head().to_string())
+        logging.info("📋 Colunas encontradas: %s", df.columns.tolist())
+
+        # Normalização dos nomes das colunas
         def normalizar_nome(col):
             return col.strip().lower()
 
         colunas_norm = {normalizar_nome(col): col for col in df.columns}
         if "pergunta" not in colunas_norm or "resposta" not in colunas_norm:
-            print("🚫 Colunas esperadas não foram encontradas!")
-            print("📋 Colunas disponíveis:", df.columns.tolist())
+            st.error("🚫 Colunas 'Pergunta' e/ou 'Resposta' não foram encontradas no CSV.")
+            logging.error("🚫 Colunas esperadas não foram encontradas!")
+            logging.error("📋 Colunas disponíveis: %s", df.columns.tolist())
             return None, None
 
-        # 👇 Mapeia os nomes reais das colunas
-        col_pergunta = colunas_norm["pergunta"]
-        col_resposta = colunas_norm["resposta"]
-
-        # 👇 Agora você pode continuar normalmente
-        perguntas_docs = []
-        respostas_docs = []
-        for _, row in df.iterrows():
-            pergunta = row[col_pergunta]
-            resposta = row[col_resposta]
-            if pd.notna(pergunta) and pd.notna(resposta):
-                perguntas_docs.append(Document(page_content=pergunta, metadata={"resposta": resposta}))
-                respostas_docs.append(Document(page_content=resposta))
-
-        # 🔽 🔽 AQUI VEM O NOVO CÓDIGO para normalizar os nomes das colunas
-        def normalizar_nome(col):
-            return col.strip().lower()
-
-        colunas_norm = {normalizar_nome(col): col for col in df.columns}
-        if "pergunta" not in colunas_norm or "resposta" not in colunas_norm:
-            print("🚫 Colunas esperadas não foram encontradas!")
-            print("📋 Colunas disponíveis:", df.columns.tolist())
-            return None, None
-
-        col_pergunta = colunas_norm["pergunta"]
-        col_resposta = colunas_norm["resposta"]
-
-        for _, row in df.iterrows():
-            pergunta = row[col_pergunta]
-            resposta = row[col_resposta]
-            if pd.notna(pergunta) and pd.notna(resposta):
-                perguntas_docs.append(Document(page_content=pergunta, metadata={"resposta": resposta}))
-                respostas_docs.append(Document(page_content=resposta))
-
-        if not perguntas_docs or not respostas_docs:
-            print("Erro: Nenhuma pergunta ou resposta válida foi carregada.")
-            return None, None
-
-        print(f"Total de perguntas carregadas: {len(perguntas_docs)}")
-        print(f"Total de respostas carregadas: {len(respostas_docs)}")
-
-        embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
-        )
-
-        db_perguntas = FAISS.from_documents(perguntas_docs, embeddings) if perguntas_docs else None
-        db_respostas = FAISS.from_documents(respostas_docs, embeddings) if respostas_docs else None
-
-        print("✅ Dados carregados com sucesso! db_perguntas e db_respostas não são None.")
-
-        return db_perguntas, db_respostas
+        # Retorna colunas normalizadas
+        pergunta_col = colunas_norm["pergunta"]
+        resposta_col = colunas_norm["resposta"]
+        return df[pergunta_col], df[resposta_col]
 
     except Exception as e:
-        print(f"Erro ao carregar o CSV: {e}")
+        st.error(f"Erro ao carregar os dados: {e}")
+        logging.exception("❌ Erro ao carregar os dados do Google Sheets.")
         return None, None
 
 
