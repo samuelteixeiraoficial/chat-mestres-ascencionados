@@ -46,7 +46,8 @@ def carregar_dados(google_sheets_csv_url):
         response.raise_for_status()
 
         print("CSV baixado com sucesso!")
-        df = pd.read_csv(StringIO(response.content.decode("utf-8", errors="replace")))
+        df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")))
+
 
         if df.empty:
             print("Erro: O CSV está vazio.")
