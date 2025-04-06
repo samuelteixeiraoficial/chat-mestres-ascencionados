@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 from functions import carregar_dados, carregar_template, processar_pergunta, verificar_dados
 import os
 import logging
+
+# Configuração de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -16,8 +18,8 @@ google_sheets_csv_url = "https://docs.google.com/spreadsheets/d/1E0xHCuPXFx6TR8C
 with open("styles.css", "r") as file:
     st.markdown(f"<style>{file.read()}</style>", unsafe_allow_html=True)
 
-# Carregar dados com cache
-@st.cache_resource
+# Carregar dados com cache (com timeout aumentado)
+@st.cache_resource(ttl=3600)  # Cache por 1 hora
 def carregar_dados_cached():
     return carregar_dados(google_sheets_csv_url)
 
@@ -26,26 +28,34 @@ def carregar_dados_cached():
 def carregar_template_cached():
     return carregar_template("prompt_template.txt")
 
-# Carregar os dados
-db_perguntas, db_respostas = carregar_dados_cached()
-
+# Carregar e verificar os dados COM TRATAMENTO DE ERRO
 try:
     logger.info("Iniciando carregamento de dados...")
-    db_perguntas, db_respostas = carregar_dados_cached()
+    with st.spinner('Carregando base de conhecimento... (pode demorar alguns segundos)'):
+        db_perguntas, db_respostas = carregar_dados_cached()
+        
     logger.info(f"Tipo db_perguntas: {type(db_perguntas)}")
     logger.info(f"Tipo db_respostas: {type(db_respostas)}")
+    
     verificar_dados(db_perguntas, db_respostas)
     logger.info("Dados verificados com sucesso!")
+    
 except Exception as e:
     logger.error(f"Erro ao carregar dados: {str(e)}", exc_info=True)
-    st.error("Erro ao carregar os dados. Por favor, tente recarregar a página.")
+    st.error("""
+        Erro ao carregar os dados. 
+        Por favor, recarregue a página. 
+        Se o problema persistir, tente novamente mais tarde.
+    """)
     st.stop()
 
-# Verificar se os dados foram carregados corretamente
-verificar_dados(db_perguntas, db_respostas)
-
-# Carregar o template
-template = carregar_template_cached()
+# Carregar o template (com tratamento de erro separado)
+try:
+    template = carregar_template_cached()
+except Exception as e:
+    logger.error(f"Erro ao carregar template: {str(e)}")
+    st.error("Erro ao carregar o template do sistema.")
+    st.stop()
 
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
