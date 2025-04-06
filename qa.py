@@ -49,13 +49,33 @@ except Exception as e:
     """)
     st.stop()
 
-# Carregar o template (com tratamento de erro separado)
+# Carregar o template
 try:
     template = carregar_template_cached()
 except Exception as e:
     logger.error(f"Erro ao carregar template: {str(e)}")
     st.error("Erro ao carregar o template do sistema.")
     st.stop()
+
+# DEBUG: Verificação completa (remova depois)
+with st.expander("🔍 Debug Info", expanded=False):
+    st.subheader("Teste de Requisição")
+    try:
+        test_req = requests.get(google_sheets_csv_url, timeout=10)
+        st.write(f"Status: {test_req.status_code}")
+        st.write(f"Tamanho: {len(test_req.text)} bytes")
+        st.code(f"Primeiras linhas:\n{test_req.text[:200]}...")
+    except Exception as e:
+        st.error(f"Falha na requisição: {str(e)}")
+    
+    st.subheader("Variáveis de Ambiente")
+    st.write(dict(os.environ))
+    
+    st.subheader("Informações do Sistema")
+    st.write("Sistema operacional:", os.name)
+    st.write("Versão Python:", sys.version)
+    st.write("Diretório atual:", os.getcwd())
+    st.write("Arquivos no diretório:", os.listdir())
 
 # Interface principal
 st.title("Chat com a Sabedoria dos Mestres Ascencionados")
