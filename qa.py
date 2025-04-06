@@ -58,7 +58,7 @@ def carregar_dados_cached():
         response = requests.get(google_sheets_csv_url, headers=headers, timeout=30)
         response.raise_for_status()
 
-        df = pd.read_csv(StringIO(response.content.decode('utf-8')))
+        df = pd.read_csv(StringIO(response.text), encoding='utf-8')
         if df.empty:
             logger.error("DataFrame vazio!")
             raise ValueError("DataFrame vazio")
