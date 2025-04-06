@@ -50,21 +50,19 @@ def carregar_dados(google_sheets_csv_url):
 
         st.success("✅ CSV baixado com sucesso!")
 
-        # Tenta carregar o CSV
         df = pd.read_csv(StringIO(response.content.decode("utf-8-sig", errors="replace")), sep="\t")
 
-        # Mostra no app
+        # 👀 Verificações visuais
         st.subheader("🔍 Primeiras linhas do DataFrame:")
         st.write(df.head())
 
         st.subheader("📋 Colunas encontradas:")
         st.write(df.columns.tolist())
 
-        # Mostra nos logs
         logging.info("🔍 Primeiras linhas do DataFrame:\n%s", df.head().to_string())
         logging.info("📋 Colunas encontradas: %s", df.columns.tolist())
 
-        # Normalização dos nomes das colunas
+        # 👇 Normalização dos nomes das colunas
         def normalizar_nome(col):
             return col.strip().lower()
 
@@ -75,14 +73,39 @@ def carregar_dados(google_sheets_csv_url):
             logging.error("📋 Colunas disponíveis: %s", df.columns.tolist())
             return None, None
 
-        # Retorna colunas normalizadas
-        pergunta_col = colunas_norm["pergunta"]
-        resposta_col = colunas_norm["resposta"]
-        return df[pergunta_col], df[resposta_col]
+        col_pergunta = colunas_norm["pergunta"]
+        col_resposta = colunas_norm["resposta"]
+
+        perguntas_docs = []
+        respostas_docs = []
+        for _, row in df.iterrows():
+            pergunta = row[col_pergunta]
+            resposta = row[col_resposta]
+            if pd.notna(pergunta) and pd.notna(resposta):
+                perguntas_docs.append(Document(page_content=pergunta, metadata={"resposta": resposta}))
+                respostas_docs.append(Document(page_content=resposta))
+
+        if not perguntas_docs or not respostas_docs:
+            st.error("Erro: Nenhuma pergunta ou resposta válida foi carregada.")
+            return None, None
+
+        st.success(f"Total de perguntas carregadas: {len(perguntas_docs)}")
+        st.success(f"Total de respostas carregadas: {len(respostas_docs)}")
+
+        embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+
+        db_perguntas = FAISS.from_documents(perguntas_docs, embeddings) if perguntas_docs else None
+        db_respostas = FAISS.from_documents(respostas_docs, embeddings) if respostas_docs else None
+
+        logging.info("✅ Dados carregados com sucesso! db_perguntas e db_respostas prontos.")
+
+        return db_perguntas, db_respostas
 
     except Exception as e:
-        st.error(f"Erro ao carregar os dados: {e}")
-        logging.exception("❌ Erro ao carregar os dados do Google Sheets.")
+        st.error(f"❌ Erro ao carregar os dados: {e}")
+        logging.exception("❌ Erro ao carregar o CSV:")
         return None, None
 
 
