@@ -61,11 +61,17 @@ def carregar_dados(google_sheets_csv_url):
         logging.info("📄 Conteúdo bruto do CSV:\n%s", csv_text[:1000])
 
         # Tenta carregar o DataFrame
-        df = pd.read_csv(StringIO(csv_text), sep=None, engine="python")
+        df = pd.read_csv(StringIO(csv_text), sep=None, engine="python", encoding="utf-8-sig")
 
         print("✅ CSV carregado como DataFrame com sucesso!")
+
+        # 🔍 Diagnóstico: mostra primeiras linhas e colunas detectadas
+        print("🔍 Primeiras linhas do CSV:")
+        print(df.head())
+
         print("📋 Colunas detectadas:", df.columns.tolist())
-        logging.info("📋 Colunas detectadas: %s", df.columns.tolist())
+        for i, col in enumerate(df.columns):
+            print(f"Coluna {i}: '{col}'")
 
         # Normaliza os nomes das colunas
         def normalizar_nome(col):
