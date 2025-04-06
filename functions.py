@@ -80,9 +80,7 @@ def carregar_dados(google_sheets_csv_url):
 
         print("✅ Dados carregados com sucesso! db_perguntas e db_respostas não são None.")
 
-
         return db_perguntas, db_respostas
-    
 
     except Exception as e:
         print(f"Erro ao carregar o CSV: {e}")
